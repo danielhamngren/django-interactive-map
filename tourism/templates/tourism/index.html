@@ -14,9 +14,7 @@
 
 {% block content %}
 <aside>
-    <div id="site-description">
-        <h1></h1>
-    </div>
+    {% comment %} {% include "tourism/sub/detail.html" %} {% endcomment %}
 </aside>
         
 {% leaflet_map "map" callback="map_init" %}
@@ -45,13 +43,28 @@
         {% for poi in poi_list %}
             var lon = "{{ poi.location.x }}";
             var lat = "{{ poi.location.y }}";
-            L.marker([lat, lon], {
+            marker = L.marker([lat, lon], {
                 icon: icons['default'],
-            }).addTo(map);
-            /*marker.on('click', function(e){
-                console.log('Cliqué');
-            })*/
-            // marker.addTo(map);
+            });
+            marker.on('click', function(e){
+                var poi_id = $(this).attr('data-id');
+                $.ajax({
+                    type: 'GET',
+                    url: "{% url 'tourism:poi_detail' %}",
+                    data: {"poi_id": poi_id},
+                    success: function (response) {
+                        // map.setView(position);
+                        console.log("Succès");
+                        $("aside").html(response);
+                    },
+                    error: function(response) {
+                        console.log("Échec de la requête AJAX (GET POI details)");
+                        console.log(response);
+                    }
+                })
+            });
+            marker['data-id'] = "{{ poi.id }}";
+            marker.addTo(map);
         {% endfor %}
     }
     {% endlocalize %}
