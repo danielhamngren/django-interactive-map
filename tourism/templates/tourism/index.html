@@ -66,7 +66,20 @@
             marker['data-id'] = "{{ poi.id }}";
             marker.addTo(map);
         {% endfor %}
+
+        $.getJSON("{% static 'tourism/argonne.geojson' %}", function(json) {
+            // console.log(L.GeoJSON.coordsToLatLngs(json.coordinates, 1));
+            argonneBoundary = L.geoJSON(json, {
+                style: {
+                    color: "#95a98c",
+                    weight: 1.3,
+                    fillOpacity: 0,
+                }                
+            }).addTo(map);
+            argonneBoundary.bringToBack();
+        });
     }
+
     {% endlocalize %}
 </script>
 {% endblock javascript %}

@@ -11,3 +11,5 @@ class PointOfInterestAdmin(GeoArgonne):
     list_display = ('name', 'city')
     list_filter = ['city']
     search_fields = ['name']
+
+    fields = ['name', 'description', 'location', ('street_address', 'city'), ('email', 'phone', 'website')]

@@ -5,7 +5,13 @@ class PointOfInterest(models.Model):
     location = models.PointField("localication")
     street_address = models.CharField("adresse", max_length=100)
     city = models.CharField("commune", max_length=50)
-    # email = models.EmailField(max_length=50)
+    
+    datatourism_id = models.CharField(max_length=200)
+    categories = models.TextField(max_length=300)
+    email = models.EmailField(max_length=50)
+    phone = models.CharField(max_length=20)
+    website = models.URLField(max_length=200)
+    description = models.TextField()
 
 
     class Meta:
