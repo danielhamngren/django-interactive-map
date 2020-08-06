@@ -1,56 +1,59 @@
-{% load leaflet_tags %}
+{% extends "tourism/base.html" %}
+
 {% load l10n %}
 {% load static %}
-<!DOCTYPE html>
-<html>
-    <head>
-        <title> Carte intéractive </title>
-        {% leaflet_css %}
-        {% leaflet_js %}
-        <link rel="shortcut icon" type="image/png" href="{% static 'tourism/favicon.ico' %}"/>
-        <link rel="stylesheet" type="text/css" href="{% static 'tourism/style.css' %}">
-    </head>
+{% load leaflet_tags %}
 
-    <body>
-        <aside>
-            <div id="site-description">
-                <h1></h1>
-            </div>
-        </aside>
+
+{% block title %}Carte intéractive{% endblock title %}
+{% block style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'tourism/style.css' %}">
+    {% leaflet_js %}
+    {% leaflet_css %}
+{% endblock style %}
+
+{% block content %}
+<aside>
+    <div id="site-description">
+        <h1></h1>
+    </div>
+</aside>
         
-        {% leaflet_map "map" callback="map_init" %}
-
-        <script type="text/javascript">
-            {% localize off %}
-            // Define the default marker
-            var icons = Array();
-            var iconProps = {
-                iconUrl: "{% static 'tourism/marker-default.png' %}",
-                iconSize: [24, 28],
-                iconAnchor: [12, 28],
-                popupAnchor: [0, -28],
-                tooltipAnchor: [0, -14],
-                shadowUrl: "{% static 'tourism/marker-shadow.png' %}",
-                shadowSize: [16, 30],
-                shadowAnchor: [8, 26]}
-        
-            icons["default"] = L.icon(iconProps);
+{% leaflet_map "map" callback="map_init" %}
+{% endblock content %}
 
 
-            function map_init(map, options) {
-                {% for poi in poi_list %}
-                    var lon = "{{ poi.location.x }}";
-                    var lat = "{{ poi.location.y }}";
-                    L.marker([lat, lon], {
-                        icon: icons['default'],
-                    }).addTo(map);
-                    /*marker.on('click', function(e){
-                        console.log('Cliqué');
-                    })*/
-                    // marker.addTo(map);
-                {% endfor %}
-            }
-            {% endlocalize %}
-        </script>
-    </body>
-</html>
+{% block javascript %}
+<script type="text/javascript">
+    {% localize off %}
+    // Define the default marker
+    var icons = Array();
+    var iconProps = {
+        iconUrl: "{% static 'tourism/marker-default.png' %}",
+        iconSize: [24, 28],
+        iconAnchor: [12, 28],
+        popupAnchor: [0, -28],
+        tooltipAnchor: [0, -14],
+        shadowUrl: "{% static 'tourism/marker-shadow.png' %}",
+        shadowSize: [16, 30],
+        shadowAnchor: [8, 26]}
+
+    icons["default"] = L.icon(iconProps);
+
+
+    function map_init(map, options) {
+        {% for poi in poi_list %}
+            var lon = "{{ poi.location.x }}";
+            var lat = "{{ poi.location.y }}";
+            L.marker([lat, lon], {
+                icon: icons['default'],
+            }).addTo(map);
+            /*marker.on('click', function(e){
+                console.log('Cliqué');
+            })*/
+            // marker.addTo(map);
+        {% endfor %}
+    }
+    {% endlocalize %}
+</script>
+{% endblock javascript %}
