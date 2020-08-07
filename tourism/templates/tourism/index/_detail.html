@@ -1,11 +1,12 @@
 {% comment %} <div id='site-description'><h1>Hello world from detail.html</h1></div> {% endcomment %}
 <p> {{ variable.id }} </p>
 <h1> {{ variable.name }} </h1>
-<p> {{ variable.categories }} </p>
-<p> {{ variable.description }} </p>
+<p> {{ variable.dt_categories }} </p>
+<p> {{ variable.description|linebreaks }} </p>
 <p> {{ variable.street_address }} </p>
 <p> {{ variable.city }} </p>
 <p> {{ variable.email }} </p>
 <p> {{ variable.phone }} </p>
 <p> {{ variable.website }} </p>
-<p>cf. <a href={{ variable.datatourism_id}}> DataTourisme</a></p>
+<p> {{ variable.category.tag }} </p>
+<p>cf. <a href={{ variable.dt_id}}> DataTourisme</a></p>

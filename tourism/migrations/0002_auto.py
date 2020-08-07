@@ -9,7 +9,7 @@ from django.contrib.gis.geos import fromstr
 
 def load_from_data_tourism(apps, schema_editor):
     PointOfInterest = apps.get_model('tourism', 'PointOfInterest')
-    flux_dir = "flux-7559-202008041002"
+    flux_dir = "flux-7559-202008071000"
     root_dir = join(dirname(dirname(__file__)), 'data/tourism', flux_dir, 'objects')
 
     i = 0
@@ -27,15 +27,20 @@ def load_from_data_tourism(apps, schema_editor):
                     latitude = obj['isLocatedAt'][0]['schema:geo']['schema:latitude']
                     longitude = obj['isLocatedAt'][0]['schema:geo']['schema:longitude']
                     location = fromstr(f'Point({longitude} {latitude})', srid=4326)
-                except:
+                except (KeyError, TypeError, IndexError):
                     continue
 
                 # Optionnal attributes
                 try:
                     attributes['street_address'] = '\n'.join(obj['isLocatedAt'][0]["schema:address"][0]["schema:streetAddress"])
-                    attributes['city'] = obj['isLocatedAt'][0]["schema:address"][0]["schema:addressLocality"]
-                except:
+                except (KeyError, TypeError, IndexError):
                     pass
+
+                try:
+                    attributes['city'] = obj['isLocatedAt'][0]["schema:address"][0]["schema:addressLocality"]
+                except (KeyError, TypeError, IndexError):
+                    pass
+
                 print(i, '\t', name)
                 PointOfInterest(name=name, location=location, datatourism_id=dt_id, **attributes).save()
 

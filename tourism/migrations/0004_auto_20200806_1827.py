@@ -10,7 +10,7 @@ from django.contrib.gis.geos import fromstr
 
 def modify_from_data_tourism(apps, schema_editor):
     PointOfInterest = apps.get_model('tourism', 'PointOfInterest')
-    flux_dir = "flux-7559-202008041002"
+    flux_dir = "flux-7559-202008071000"
     root_dir = join(dirname(dirname(__file__)), 'data/tourism', flux_dir, 'objects')
 
     i = 0
@@ -23,19 +23,25 @@ def modify_from_data_tourism(apps, schema_editor):
                 # Find the corresponding POI
                 try:
                     poi = PointOfInterest.objects.get(datatourism_id = obj["@id"])
-                except:
+                except (KeyError, TypeError, IndexError):
                     continue
 
-                attributes = {}
                 # Add attributes
-                try:
-                    attributes['categories'] = "\n".join(obj['@type'])
-                    attributes['email'] = obj['hasContact'][0]['schema:email'][0]
-                    attributes['phone'] = obj['hasContact'][0]['schema:telephone'][0]
-                    attributes['website'] = obj['hasContact'][0]['foaf:homepage'][0]
-                    attributes['description'] = '\n\n'.join(obj['hasDescription'][0]['shortDescription']['fr'])
-                except:
-                    pass
+                attributes = {}
+                attr_map = {
+                    "categories": (lambda o: "\n".join(o['@type'])),
+                    "email": (lambda o: o['hasContact'][0]['schema:email'][0]),
+                    "phone": (lambda o: o['hasContact'][0]['schema:telephone'][0]),
+                    "website": (lambda o: o['hasContact'][0]['foaf:homepage'][0]),
+                    "description": (lambda o: '\n\n'.join(o['hasDescription'][0]['shortDescription']['fr']))
+                }
+
+                for attr, dt_attr in attr_map.items():
+                    try:
+                        attributes[attr] = dt_attr(obj)
+                    except (KeyError, TypeError, IndexError):
+                        pass
+
                 print(i, '\t', poi.name)
 
                 for k, v in attributes.items():

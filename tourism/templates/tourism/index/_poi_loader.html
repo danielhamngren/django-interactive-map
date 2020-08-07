@@ -16,7 +16,7 @@
             var lon = "{{ poi.location.x }}";
             var lat = "{{ poi.location.y }}";
             var marker = L.marker([lat, lon], {
-                icon: icons['default'],
+                icon: getIcon("{{ poi.category.icon }}"),
             });
             marker.on('click', onMarkerClick);
             marker['data-id'] = poi_id;

@@ -43,6 +43,15 @@
 
     icons["default"] = L.icon(iconProps);
 
+    function getIcon(tag) {
+        if (icons[tag] == null) {
+            var base_url = "{% static 'tourism/marker-' %}";
+            iconProps["iconUrl"] = base_url + tag + '.png';
+            icons[tag] = L.icon(iconProps);
+        }
+        return icons[tag]
+    }
+
     function loadMarkers() {
         // markersLayer.clearLayers();
         var bounds = map.getBounds();
