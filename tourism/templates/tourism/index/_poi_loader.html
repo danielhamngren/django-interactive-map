@@ -1,0 +1,45 @@
+{% comment %} {% for poi in poi_list %}
+    <p> {{ poi.name }} ({{poi.city}})</p>
+{% endfor %} {% endcomment %}
+{% load l10n %}
+
+<script>
+{% localize off %}
+    console.log("{{ poi_list | length}} POIs loaded");
+    console.log("markersLoaded Before", markersLoaded);
+    // markersLayer.clearLayers();
+    var markersLoadedNew = Object(); // key: id -> value: leaflet_id
+    // Add all new markers
+    {% for poi in poi_list %}
+        var poi_id = "{{ poi.id }}";
+        if (markersLoaded[poi_id] == null) { // new marker to display
+            var lon = "{{ poi.location.x }}";
+            var lat = "{{ poi.location.y }}";
+            var marker = L.marker([lat, lon], {
+                icon: icons['default'],
+            });
+            marker.on('click', onMarkerClick);
+            marker['data-id'] = poi_id;
+            markersLayer.addLayer(marker);
+            markersLoadedNew[poi_id] = marker._leaflet_id;
+        } else {
+            markersLoadedNew[poi_id] = markersLoaded[poi_id]
+        }
+    {% endfor %}
+
+    console.log("markersLoaded New", markersLoadedNew);
+
+
+    // Remove unwanted markers (not in leagletIdToKeep)
+    leafletIdToKeep = Object.values(markersLoadedNew);
+    console.log("leafletIdToKeep", leafletIdToKeep);
+
+    markersLayer.eachLayer(function (layer) {
+        if (!(leafletIdToKeep.includes(layer._leaflet_id))) {
+            markersLayer.removeLayer(layer);
+        }
+    });
+    markersLoaded = markersLoadedNew;
+
+{% endlocalize %}
+</script>

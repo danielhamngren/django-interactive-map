@@ -17,13 +17,18 @@
     {% comment %} {% include "tourism/sub/detail.html" %} {% endcomment %}
 </aside>
         
-{% leaflet_map "map" callback="map_init" %}
+{% leaflet_map "maCarte" callback="map_init" %}
 {% endblock content %}
 
 
 {% block javascript %}
 <script type="text/javascript">
     {% localize off %}
+    // Layers
+    var map;
+    var markersLayer = new L.LayerGroup();
+    var markersLoaded = Object(); // store _leaflet_id
+    
     // Define the default marker
     var icons = Array();
     var iconProps = {
@@ -38,35 +43,77 @@
 
     icons["default"] = L.icon(iconProps);
 
+    function loadMarkers() {
+        // markersLayer.clearLayers();
+        var bounds = map.getBounds();
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'tourism:poi_load' %}",
+            data: {"bounds": JSON.stringify(bounds)},
+            success: function (response) {
+                // map.setView(position);
+                // response;
+                $("body").append(response);
+            },
+            error: function(response) {
+                console.log("Échec de la requête AJAX (loadMarkers)");
+                console.log(response);
+            }
+        })
+    }
 
-    function map_init(map, options) {
+    function onMarkerClick(e) {
+        var poi_id = $(this).attr('data-id');
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'tourism:poi_detail' %}",
+            data: {"poi_id": poi_id},
+            success: function (response) {
+                // map.setView(position);
+                $("aside").html(response);
+            },
+            error: function(response) {
+                console.log("Échec de la requête AJAX (GET POI details)");
+                console.log(response);
+            }
+        })
+    }
+
+    function displayAllMarkers() {
         {% for poi in poi_list %}
             var lon = "{{ poi.location.x }}";
             var lat = "{{ poi.location.y }}";
             marker = L.marker([lat, lon], {
                 icon: icons['default'],
             });
-            marker.on('click', function(e){
-                var poi_id = $(this).attr('data-id');
-                $.ajax({
-                    type: 'GET',
-                    url: "{% url 'tourism:poi_detail' %}",
-                    data: {"poi_id": poi_id},
-                    success: function (response) {
-                        // map.setView(position);
-                        console.log("Succès");
-                        $("aside").html(response);
-                    },
-                    error: function(response) {
-                        console.log("Échec de la requête AJAX (GET POI details)");
-                        console.log(response);
-                    }
-                })
-            });
+            marker.on('click', onMarkerClick);
             marker['data-id'] = "{{ poi.id }}";
             marker.addTo(map);
         {% endfor %}
+    }
 
+    function map_init(mmap, options) {
+        map = mmap; // store the object in a variable
+
+        // Display all markers
+        // displayAllMarkers();
+        markersLayer.addTo(map);
+        loadMarkers();
+			
+		/*map.on('drag', function(e) {
+            markersLayer.clearLayers();
+		});*/
+			
+		map.on('dragend', function(e) {
+		    // markersLayer.clearLayers();
+		    loadMarkers();
+		});
+
+        map.on('zoomend', function() {
+            loadMarkers();
+        });
+
+        // Display Argonne's contour
         $.getJSON("{% static 'tourism/argonne.geojson' %}", function(json) {
             // console.log(L.GeoJSON.coordsToLatLngs(json.coordinates, 1));
             argonneBoundary = L.geoJSON(json, {
