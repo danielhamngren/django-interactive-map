@@ -13,10 +13,19 @@
 {% endblock style %}
 
 {% block content %}
-<aside>
+<div id="main-sidebar" class="sidebar">
+    <div class="content">
+        <h1>Accueil</h1>
+    </div>
+</div>
+<aside class="sidebar">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+    <div class="content">
     {% comment %} {% include "tourism/sub/detail.html" %} {% endcomment %}
+    </div>
 </aside>
-        
+
+
 {% leaflet_map "maCarte" callback="map_init" %}
 {% endblock content %}
 
@@ -28,6 +37,7 @@
     var map;
     var markersLayer = new L.LayerGroup();
     var markersLoaded = Object(); // store _leaflet_id
+    var selectedMarker = Object();
     
     // Define the default marker
     var icons = Array();
@@ -42,6 +52,10 @@
         shadowAnchor: [8, 26]}
 
     icons["default"] = L.icon(iconProps);
+
+    function closeNav() {
+        $("aside").removeClass("active");
+    }
 
     function getIcon(tag) {
         if (icons[tag] == null) {
@@ -72,6 +86,27 @@
     }
 
     function onMarkerClick(e) {
+        // 1. Emphasize the corresponding icon
+        
+        if (Object.entries(selectedMarker).length) {
+            // Reset the previously selected icon
+            selectedMarker["icon"].style.width = "24px";
+            selectedMarker["icon"].style.height = "28px";
+            selectedMarker["icon"].style.marginLeft = "-12px";
+            selectedMarker["icon"].style.marginTop = "-28px";
+            selectedMarker["icon"].style.zIndex = selectedMarker["z-index"];
+        }
+
+        var my_icon = $(this)[0]._icon;
+        my_icon.style.width = "30px";
+        my_icon.style.height = "35px";
+        my_icon.style.marginLeft = '-15px'
+        my_icon.style.marginTop = '-35px'
+        selectedMarker["z-index"] = my_icon.style.zIndex;
+        my_icon.style.zIndex = 5000;
+        selectedMarker["icon"] = my_icon;
+
+        // 2. Get details from the selected POI        
         var poi_id = $(this).attr('data-id');
         $.ajax({
             type: 'GET',
@@ -79,7 +114,8 @@
             data: {"poi_id": poi_id},
             success: function (response) {
                 // map.setView(position);
-                $("aside").html(response);
+                $("aside .content").html(response);
+                $("aside").addClass("active");
             },
             error: function(response) {
                 console.log("Échec de la requête AJAX (GET POI details)");
@@ -122,6 +158,10 @@
             loadMarkers();
         });
 
+        map.on('click', function() {
+            closeNav();
+        });
+
         // Display Argonne's contour
         $.getJSON("{% static 'tourism/argonne.geojson' %}", function(json) {
             // console.log(L.GeoJSON.coordsToLatLngs(json.coordinates, 1));
@@ -138,4 +178,5 @@
 
     {% endlocalize %}
 </script>
+<script src="{% static 'tourism/front.js' %}"></script>
 {% endblock javascript %}

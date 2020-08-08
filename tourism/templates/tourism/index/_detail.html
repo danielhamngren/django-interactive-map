@@ -1,12 +1,24 @@
 {% comment %} <div id='site-description'><h1>Hello world from detail.html</h1></div> {% endcomment %}
-<p> {{ variable.id }} </p>
-<h1> {{ variable.name }} </h1>
-<p> {{ variable.dt_categories }} </p>
-<p> {{ variable.description|linebreaks }} </p>
-<p> {{ variable.street_address }} </p>
-<p> {{ variable.city }} </p>
-<p> {{ variable.email }} </p>
-<p> {{ variable.phone }} </p>
-<p> {{ variable.website }} </p>
-<p> {{ variable.category.tag }} </p>
-<p>cf. <a href={{ variable.dt_id}}> DataTourisme</a></p>
+<h1 class="poi-name"> {{ variable.name |upper }} </h1>
+
+{% if variable.category.tag != 'default' %}
+<span class="tag poi-category"> {{ variable.category.name }}</span>
+{% endif %}
+<span class="tag poi-id"><a href={{ variable.dt_id}}> {{ variable.id }}</a></span>
+
+{% comment %} <p> {{ variable.dt_categories }} </p> {% endcomment %}
+
+<div class="description">
+    {{ variable.description|linebreaks }}
+</div>
+
+<p class="address"> 
+    <span class="address-street"> {{ variable.street_address }} </span>
+    <span class="address-city"> {{ variable.city }} </span>
+</p>
+
+<p class="contact"> 
+    <span class="contact-eamil"> {{ variable.email }} </span>
+    <span class="contact-phone"> {{ variable.phone }} </span>
+    <span class="contact-website"> {{ variable.website }} </span>
+</p>

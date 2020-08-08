@@ -5,8 +5,8 @@
 
 <script>
 {% localize off %}
-    console.log("{{ poi_list | length}} POIs loaded");
-    console.log("markersLoaded Before", markersLoaded);
+    // console.log("{{ poi_list | length}} POIs loaded");
+    // console.log("markersLoaded Before", markersLoaded);
     // markersLayer.clearLayers();
     var markersLoadedNew = Object(); // key: id -> value: leaflet_id
     // Add all new markers
@@ -27,12 +27,12 @@
         }
     {% endfor %}
 
-    console.log("markersLoaded New", markersLoadedNew);
+    // console.log("markersLoaded New", markersLoadedNew);
 
 
     // Remove unwanted markers (not in leagletIdToKeep)
     leafletIdToKeep = Object.values(markersLoadedNew);
-    console.log("leafletIdToKeep", leafletIdToKeep);
+    // console.log("leafletIdToKeep", leafletIdToKeep);
 
     markersLayer.eachLayer(function (layer) {
         if (!(leafletIdToKeep.includes(layer._leaflet_id))) {
