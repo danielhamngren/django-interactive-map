@@ -68,11 +68,11 @@ aside .closebtn {
 }
 
 
-.address span, .contact span {
+.address span, .contact span, .opening-schema span{
     display: block;
 }
 
-.address::before, .contact::before, .description::before{
+.address::before, .contact::before, .description::before, .opening-schema::before{
     font-size: 12px;
     color: grey;
 }
@@ -87,6 +87,9 @@ aside .closebtn {
 
 .description::before{
     content: "Description";
+}
+.opening-schema::before{
+    content: "Dates d'ouverture";
 }
 
 .description p:first-child {

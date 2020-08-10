@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'leaflet',
+    'nested_admin',
     'django.contrib.gis',
     'tourism.apps.TourismConfig',
 ]

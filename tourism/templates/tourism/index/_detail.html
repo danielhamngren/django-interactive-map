@@ -1,24 +1,30 @@
 {% comment %} <div id='site-description'><h1>Hello world from detail.html</h1></div> {% endcomment %}
-<h1 class="poi-name"> {{ variable.name |upper }} </h1>
+<h1 class="poi-name"> {{ poi.name |upper }} </h1>
 
-{% if variable.category.tag != 'default' %}
-<span class="tag poi-category"> {{ variable.category.name }}</span>
+{% if poi.category.tag != 'default' %}
+<span class="tag poi-category"> {{ poi.category.name }}</span>
 {% endif %}
-<span class="tag poi-id"><a href={{ variable.dt_id}}> {{ variable.id }}</a></span>
+<span class="tag poi-id"><a href={{ poi.dt_id}}> {{ poi.id }}</a></span>
 
-{% comment %} <p> {{ variable.dt_categories }} </p> {% endcomment %}
+{% comment %} <p> {{ poi.dt_categories }} </p> {% endcomment %}
 
 <div class="description">
-    {{ variable.description|linebreaks }}
+    {{ poi.description|linebreaks }}
 </div>
 
 <p class="address"> 
-    <span class="address-street"> {{ variable.street_address }} </span>
-    <span class="address-city"> {{ variable.city }} </span>
+    <span class="address-street"> {{ poi.street_address }} </span>
+    <span class="address-city"> {{ poi.city }} </span>
 </p>
 
 <p class="contact"> 
-    <span class="contact-eamil"> {{ variable.email }} </span>
-    <span class="contact-phone"> {{ variable.phone }} </span>
-    <span class="contact-website"> {{ variable.website }} </span>
+    <span class="contact-eamil"> {{ poi.email }} </span>
+    <span class="contact-phone"> {{ poi.phone }} </span>
+    <span class="contact-website"> {{ poi.website }} </span>
+</p>
+
+<p class="opening-schema">
+{% for schema in poi.openinghoursschema_set.all %}
+    <span class="valid-date"> du {{ schema.valid_from }} au {{ schema.valid_through }}</span>
+{% endfor %}
 </p>

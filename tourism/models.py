@@ -1,4 +1,6 @@
 from django.contrib.gis.db import models
+import datetime
+# from django.utils.translation import gettext_lazy as _
 
 class Category(models.Model):
     name = models.CharField(max_length=150)
@@ -25,14 +27,14 @@ def get_default_category():
 class PointOfInterest(models.Model):
     name = models.CharField("nom", max_length=100)
     location = models.PointField("localication")
-    street_address = models.CharField("adresse", max_length=100)
+    street_address = models.CharField("adresse", max_length=100, blank=True)
     city = models.CharField("commune", max_length=50)
     
     dt_id = models.CharField(max_length=200)
     dt_categories = models.TextField(max_length=300)
-    email = models.EmailField(max_length=50)
-    phone = models.CharField(max_length=20)
-    website = models.URLField(max_length=200)
+    email = models.EmailField(max_length=50, blank=True)
+    phone = models.CharField(max_length=20, blank=True)
+    website = models.URLField(max_length=200, blank=True)
     description = models.TextField()
 
     category = models.ForeignKey(
@@ -49,3 +51,46 @@ class PointOfInterest(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.city})"
+
+
+
+def get_valid_through_default():
+        return datetime.date(datetime.date.today().year, 12, 31)
+
+class OpeningHoursSchema(models.Model):
+    poi = models.ForeignKey(PointOfInterest, on_delete=models.CASCADE)
+    valid_from = models.DateField("valable à partir du", default=datetime.date.today)
+    valid_through= models.DateField("valable jusqu'au", blank=True, default=get_valid_through_default)
+
+
+    class Meta:
+        verbose_name = "période d'ouverture"
+        verbose_name_plural = "périodes d'ouverture"
+
+    def __str__(self):
+        return f"{self.poi.name} ({self.valid_from} - {self.valid_through}"
+
+
+
+class OpeningHours(models.Model):
+    WEEKDAYS = [
+        (1, "Lundi"),
+        (2, "Mardi"),
+        (3, "Mercredi"),
+        (4, "Jeudi"),
+        (5, "Vendredi"),
+        (6, "Samedi"),
+        (7, "Dimanche"),
+    ]
+
+    schema = models.ForeignKey(OpeningHoursSchema, on_delete=models.CASCADE)
+    weekday = models.PositiveSmallIntegerField("jour de la semaine", choices=WEEKDAYS)
+    from_hour = models.TimeField("heure d'ouverture")
+    to_hour = models.TimeField("heure de fermeture")
+
+    class Meta:
+        verbose_name = "horaires d'ouverture"
+        verbose_name_plural = "horaires d'ouverture"
+
+    def __str__(self):
+        return f"{self.schema.poi.name} {self.weekday} ({self.from_hour} - {self.to_hour})"

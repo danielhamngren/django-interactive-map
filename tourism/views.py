@@ -31,7 +31,7 @@ def detail(request):
     if request.is_ajax and request.method == "GET":
         poi_id = request.GET.get("poi_id", None)
         poi = get_object_or_404(PointOfInterest, pk=poi_id)
-        return render(request, 'tourism/index/_detail.html', {'variable': poi})
+        return render(request, 'tourism/index/_detail.html', {'poi': poi})
     else:
         return HttpResponseNotAllowed(('GET',))
 
