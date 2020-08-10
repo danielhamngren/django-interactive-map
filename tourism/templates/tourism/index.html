@@ -15,7 +15,8 @@
 {% block content %}
 <div id="main-sidebar" class="sidebar">
     <div class="content">
-        <h1>Accueil</h1>
+        <h1>Destination Argonne</h1>
+        <div id="layers-control"></div>
     </div>
 </div>
 <aside class="sidebar">
@@ -34,10 +35,11 @@
 <script type="text/javascript">
     {% localize off %}
     // Layers
-    var map;
-    var markersLayer = new L.LayerGroup();
-    var markersLoaded = Object(); // store _leaflet_id
-    var selectedMarker = Object();
+    var map; // leaflet Map
+    var markersLayers = Object(); // store each layers: {tag : leaflet LayerGroup}
+    var markersLoaded = Object(); // store each loaded markers: {poi_id : _leaflet_id}
+    var selectedMarker = Object(); 
+    var controlLayers; // leaflet Control.layers
     
     // Define the default marker
     var icons = Array();
@@ -85,6 +87,45 @@
         })
     }
 
+    function changeLayersState(input) {
+        if (input.checked) {
+            map.addLayer(markersLayers[input.id]);
+            input.parentNode.parentNode.classList.add("checked");
+        } else {
+            input.parentNode.parentNode.classList.remove("checked");
+            map.removeLayer(markersLayers[input.id]);
+        }
+    }
+
+    function createLayersByCategory() {
+        layerSwitcher = $("#layers-control");
+
+        {% for cat in category_list %}
+            // Create new LayerGroup
+            markersLayers["{{ cat.tag }}"] = new L.LayerGroup();
+            
+            // Create inputs to remove/add layerGroups (cf. changeLayersState)
+            label = $("<label>", {for: "{{ cat.tag }}"});
+            labelDiv = $("<div>").appendTo(label);
+            $("<input>", {
+                type:"checkbox",
+                id: "{{ cat.tag }}",
+                name:"category-layer",
+                checked: "{{ cat.tag }}" == "event",
+                onchange:"changeLayersState(this)"}).appendTo(labelDiv);
+            $("<span>").html("{{ cat.name }}").appendTo(labelDiv);
+            label.appendTo(layerSwitcher)
+
+        {% endfor %}
+
+        // Init: display default layers
+        inputs = $("#layers-control input");
+        for (i = 0; i < inputs.length; i++) {
+            changeLayersState(inputs[i]);
+        }
+    }
+
+
     function onMarkerClick(e) {
         // 1. Emphasize the corresponding icon
         
@@ -124,30 +165,23 @@
         })
     }
 
-    function displayAllMarkers() {
-        {% for poi in poi_list %}
-            var lon = "{{ poi.location.x }}";
-            var lat = "{{ poi.location.y }}";
-            marker = L.marker([lat, lon], {
-                icon: icons['default'],
-            });
-            marker.on('click', onMarkerClick);
-            marker['data-id'] = "{{ poi.id }}";
-            marker.addTo(map);
-        {% endfor %}
-    }
 
     function map_init(mmap, options) {
         map = mmap; // store the object in a variable
+        controlLayers = map.layerscontrol;
 
-        // Display all markers
-        // displayAllMarkers();
-        markersLayer.addTo(map);
+        // Display initial markers
+        createLayersByCategory();
         loadMarkers();
 			
 		/*map.on('drag', function(e) {
             markersLayer.clearLayers();
 		});*/
+
+        /*$(window).on('resize', function() {
+            console.log("resize");
+            loadMarkers();
+        });*/
 			
 		map.on('dragend', function(e) {
 		    // markersLayer.clearLayers();

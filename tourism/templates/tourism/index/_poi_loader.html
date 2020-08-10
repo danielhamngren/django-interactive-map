@@ -20,7 +20,7 @@
             });
             marker.on('click', onMarkerClick);
             marker['data-id'] = poi_id;
-            markersLayer.addLayer(marker);
+            markersLayers["{{ poi.category.tag }}"].addLayer(marker);
             markersLoadedNew[poi_id] = marker._leaflet_id;
         } else {
             markersLoadedNew[poi_id] = markersLoaded[poi_id]
@@ -34,10 +34,12 @@
     leafletIdToKeep = Object.values(markersLoadedNew);
     // console.log("leafletIdToKeep", leafletIdToKeep);
 
-    markersLayer.eachLayer(function (layer) {
-        if (!(leafletIdToKeep.includes(layer._leaflet_id))) {
-            markersLayer.removeLayer(layer);
-        }
+    Object.values(markersLayers).forEach((layerGroup) => {
+        layerGroup.eachLayer(function (layer) {
+            if (!(leafletIdToKeep.includes(layer._leaflet_id))) {
+                layerGroup.removeLayer(layer);
+            }
+        });
     });
     markersLoaded = markersLoadedNew;
 

@@ -42,7 +42,7 @@ h1, h2, h3, h4, h5 {
     /* background-color: bisque; */
 }
 
-/* ASIDE */
+/* ----- ASIDE ----- */
 aside{
     position: fixed;
     left: -25rem;
@@ -115,4 +115,76 @@ aside .closebtn {
 
 .poi-name{
     margin-bottom: 0;
+}
+
+/* ----- GROUPLAYERS SWITCHER ----- */
+
+#layers-control input[type=checkbox] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    -ms-appearance: none;
+}
+
+#layers-control label{
+    display: block;
+    position: relative;
+    
+    height: 3em;
+    margin-bottom: 1em;
+    border-radius: 3px;
+    
+    background-color: lightcoral;
+    opacity: 0.5;
+    font-size: 15px;
+    font-family: "Josefin Sans";
+    text-align: center;
+    
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: pointer;
+}
+
+#layers-control label[for="default"] {
+	background-color: #d54363;
+}
+#layers-control label[for="natural-site"] {
+	background-color: #27ae60;
+}
+#layers-control label[for="cultural-site"] {
+    background-color: #34495e;
+    color: white;
+}
+#layers-control label[for="city"] {
+    background-color: black;
+    color: white;
+}
+#layers-control label[for="tour"] {
+    background-color: #a05a2c;
+    color: white;
+}
+#layers-control label[for="tourism-info"] {
+	background-color: #3498db;
+}
+#layers-control label[for="food-establishment"] {
+	background-color: #ff7979;
+}
+#layers-control label[for="accommodation"] {
+	background-color: #f39c12;
+}
+#layers-control label[for="event"] {
+    background-color: #4834d4;
+    color: white;
+}
+
+#layers-control label div {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+#layers-control label.checked {
+    opacity: 1;
 }

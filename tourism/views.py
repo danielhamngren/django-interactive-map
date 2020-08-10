@@ -5,15 +5,15 @@ from django.views.generic import ListView
 
 from django.contrib.gis.geos import Polygon
 
-from .models import PointOfInterest
+from .models import Category, PointOfInterest
 import json
 
 class IndexView(ListView):
     template_name = 'tourism/index.html'
-    context_object_name = 'poi_list'  # default: question_list
+    context_object_name = 'category_list'
 
     def get_queryset(self):
-        return PointOfInterest.objects.all()
+        return Category.objects.all()
 
 # def detail(request):
 #     # return JsonResponse({"error": False}, status=200)

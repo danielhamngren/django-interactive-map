@@ -11,7 +11,7 @@
    data-name="Calque 1"
    viewBox="0 0 60.000002 69.999999"
    version="1.1"
-   sodipodi:docname="marker-default.svg"
+   sodipodi:docname="marker-test.svg"
    inkscape:version="0.92.3 (2405546, 2018-03-11)"
    width="60"
    height="70"
@@ -107,6 +107,57 @@
          y="-30.377556"
          transform="scale(1,-1)" />
     </clipPath>
+    <style
+       id="style2-3">.cls-1{fill:#ffc76b;}.cls-2{fill:#fff;}.cls-3{opacity:0.3;isolation:isolate;}</style>
+    <filter
+       id="filter1503-5"
+       inkscape:label="Feather"
+       style="color-interpolation-filters:sRGB">
+      <feGaussianBlur
+         id="feGaussianBlur1495-6"
+         result="blur"
+         stdDeviation="0.2" />
+      <feComposite
+         id="feComposite1497-2"
+         result="composite1"
+         operator="atop"
+         in2="blur"
+         in="SourceGraphic" />
+      <feComposite
+         id="feComposite1499-9"
+         result="composite2"
+         operator="in"
+         in2="composite1" />
+      <feComposite
+         id="feComposite1501-1"
+         result="composite3"
+         operator="in"
+         in2="composite2" />
+    </filter>
+    <clipPath
+       id="clipPath1577-2"
+       clipPathUnits="userSpaceOnUse">
+      <rect
+         transform="scale(1,-1)"
+         y="-30.377556"
+         x="-2.5643573"
+         height="18.001732"
+         width="28.598495"
+         id="rect1579-7"
+         style="opacity:0.50499998;fill:#800000;fill-opacity:1;stroke:none;stroke-width:0.71160448;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:1.42320893, 4.26962679;stroke-dashoffset:0;stroke-opacity:1" />
+    </clipPath>
+    <clipPath
+       id="clipPath1577-3-0"
+       clipPathUnits="userSpaceOnUse">
+      <rect
+         transform="scale(1,-1)"
+         y="-30.377556"
+         x="-2.5643573"
+         height="18.001732"
+         width="28.598495"
+         id="rect1579-5-9"
+         style="opacity:0.50499998;fill:#800000;fill-opacity:1;stroke:none;stroke-width:0.71160448;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:1.42320893, 4.26962679;stroke-dashoffset:0;stroke-opacity:1" />
+    </clipPath>
   </defs>
   <title
      id="title6">marker-hotel</title>
@@ -115,7 +166,7 @@
      d="M 10.937668,49.394015 9.0626857,47.57584 A 28.343499,27.484747 0 0 1 1.8752494,29.09106 28.343499,27.484747 0 0 1 9.0626857,10.606279 C 9.6876806,10.000221 10.312675,9.091134 10.937668,8.4850751 a 28.874744,27.999897 0 0 1 38.124663,0 l 1.874984,1.8181749 a 28.343499,27.484747 0 0 1 7.187436,18.484781 28.343499,27.484747 0 0 1 -7.187436,18.48478 L 49.062331,49.090986 30,67.878795 Z"
      id="path8"
      inkscape:connector-curvature="0"
-     style="fill:#d54363;stroke-width:3.07726812;fill-opacity:1"
+     style="fill:#d35400;stroke-width:3.07726812;fill-opacity:1"
      inkscape:export-xdpi="96"
      inkscape:export-ydpi="96" />
   <path
@@ -127,10 +178,15 @@
      inkscape:export-xdpi="96"
      inkscape:export-ydpi="96" />
   <ellipse
-     style="opacity:0.248;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.48786616;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:2.97573248, 8.92719744999999953;stroke-dashoffset:0;stroke-opacity:1"
+     style="opacity:0.24800002;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2.25669408;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:4.51338832, 13.54016497;stroke-dashoffset:0;stroke-opacity:1"
      id="path833"
      cx="30"
      cy="28.697536"
-     rx="13.98305"
-     ry="13.220339" />
+     rx="21.208538"
+     ry="20.05171" />
+  <path
+     style="fill:#ffffff;stroke-width:2.1616106"
+     d="m 30.201868,13.882672 -14.050472,7.447397 v 1.199048 h 28.100921 v -1.199048 z m -11.888875,10.80805 v 10.808053 l -2.161597,3.360657 v 3.124174 H 44.252317 V 38.859432 L 42.090719,35.498775 V 24.690722 Z m 5.653049,2.16161 c 0.365139,-0.0049 0.717221,0.138107 0.975313,0.396887 l 5.260513,5.260494 5.260489,-5.260494 c 0.528504,-0.526783 1.383881,-0.525699 1.91086,0.0027 0.251771,0.252501 0.393592,0.594657 0.394084,0.951325 v 9.169984 c 0.0099,0.746188 -0.585777,1.359651 -1.331992,1.370032 -0.746166,0.01083 -1.359634,-0.585801 -1.370036,-1.331989 -1.96e-4,-0.01279 -1.96e-4,-0.02553 0,-0.03829 V 31.462508 L 31.155786,35.372 c -0.527421,0.525918 -1.380832,0.525918 -1.908253,0 l -3.909488,-3.909492 v 5.910709 c 0.0099,0.746188 -0.585777,1.359651 -1.331991,1.370031 -0.745994,0.01083 -1.359438,-0.585583 -1.370036,-1.331771 -1.97e-4,-0.01279 -1.97e-4,-0.02553 0,-0.03829 v -9.169964 c 0,-0.737972 0.592047,-1.339333 1.329828,-1.35101 z"
+     id="path7509"
+     inkscape:connector-curvature="0" />
 </svg>

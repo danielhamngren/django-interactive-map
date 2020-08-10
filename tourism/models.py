@@ -20,6 +20,8 @@ def get_default_category():
     cat.save()
     return cat.id
 
+
+
 class PointOfInterest(models.Model):
     name = models.CharField("nom", max_length=100)
     location = models.PointField("localication")
