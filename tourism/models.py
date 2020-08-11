@@ -58,6 +58,7 @@ def get_valid_through_default():
         return datetime.date(datetime.date.today().year, 12, 31)
 
 class OpeningHoursSchema(models.Model):
+    """ Opening period """
     poi = models.ForeignKey(PointOfInterest, on_delete=models.CASCADE)
     valid_from = models.DateField("valable à partir du", default=datetime.date.today)
     valid_through= models.DateField("valable jusqu'au", blank=True, default=get_valid_through_default)
@@ -66,6 +67,7 @@ class OpeningHoursSchema(models.Model):
     class Meta:
         verbose_name = "période d'ouverture"
         verbose_name_plural = "périodes d'ouverture"
+        ordering = ['valid_from', 'valid_through']
 
     def __str__(self):
         return f"{self.poi.name} ({self.valid_from} - {self.valid_through}"
@@ -73,6 +75,7 @@ class OpeningHoursSchema(models.Model):
 
 
 class OpeningHours(models.Model):
+    """ Typical week's opening hours during a certain opening period (schema) """
     WEEKDAYS = [
         (1, "Lundi"),
         (2, "Mardi"),
@@ -85,12 +88,13 @@ class OpeningHours(models.Model):
 
     schema = models.ForeignKey(OpeningHoursSchema, on_delete=models.CASCADE)
     weekday = models.PositiveSmallIntegerField("jour de la semaine", choices=WEEKDAYS)
-    from_hour = models.TimeField("heure d'ouverture")
-    to_hour = models.TimeField("heure de fermeture")
+    from_hour = models.TimeField("heure d'ouverture", null=True)
+    to_hour = models.TimeField("heure de fermeture", null=True)
 
     class Meta:
         verbose_name = "horaires d'ouverture"
         verbose_name_plural = "horaires d'ouverture"
+        ordering = ['weekday', 'from_hour']
 
     def __str__(self):
         return f"{self.schema.poi.name} {self.weekday} ({self.from_hour} - {self.to_hour})"

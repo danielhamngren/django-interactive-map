@@ -5,7 +5,9 @@ from django.views.generic import ListView
 
 from django.contrib.gis.geos import Polygon
 
-from .models import Category, PointOfInterest
+from .models import Category, OpeningHoursSchema, OpeningHours, PointOfInterest
+
+import datetime
 import json
 
 class IndexView(ListView):
@@ -31,7 +33,15 @@ def detail(request):
     if request.is_ajax and request.method == "GET":
         poi_id = request.GET.get("poi_id", None)
         poi = get_object_or_404(PointOfInterest, pk=poi_id)
-        return render(request, 'tourism/index/_detail.html', {'poi': poi})
+        current_opening_schema = OpeningHoursSchema.objects.filter(
+            poi=poi,
+            valid_from__lte=datetime.date.today(),
+            valid_through__gte=datetime.date.today()).first()
+        content = {
+            'poi': poi,
+            'opening_schema': current_opening_schema
+        }
+        return render(request, 'tourism/index/_detail.html', content)
     else:
         return HttpResponseNotAllowed(('GET',))
 

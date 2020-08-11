@@ -48,7 +48,8 @@ aside{
     left: -25rem;
     transition: left 0.6s;
     z-index: 510;
-    /* overflow: hidden; */
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 aside.active {
@@ -67,6 +68,12 @@ aside .closebtn {
     transition: 0.25s;
 }
 
+.description::before{
+    content: "Description";
+}
+.description p:first-child, .opening-schema p:first-child {
+    margin-top: 0;
+}
 
 .address span, .contact span, .opening-schema span{
     display: block;
@@ -85,16 +92,19 @@ aside .closebtn {
     content: "Contact";
 }
 
-.description::before{
-    content: "Description";
-}
 .opening-schema::before{
     content: "Dates d'ouverture";
 }
 
-.description p:first-child {
-	margin-top: 0;
+.opening-schema td {
+    padding: 0;
 }
+
+.opening-schema .today {
+	font-weight: 700;
+	color: #2772a5;
+}
+
 
 .tag {
 	/* position: absolute; */

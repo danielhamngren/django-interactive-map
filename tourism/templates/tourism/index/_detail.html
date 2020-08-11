@@ -17,14 +17,45 @@
     <span class="address-city"> {{ poi.city }} </span>
 </p>
 
+{% if poi.email or poi.phone or poi.website %}
 <p class="contact"> 
     <span class="contact-eamil"> {{ poi.email }} </span>
     <span class="contact-phone"> {{ poi.phone }} </span>
     <span class="contact-website"> {{ poi.website }} </span>
 </p>
+{% endif %}
 
-<p class="opening-schema">
+{% now "l" as current_year %}
+{% if opening_schema %}
+<div class="opening-schema">
+    <p> du {{ opening_schema.valid_from }} au {{ opening_schema.valid_through }} </p>
+    
+    <table>
+    {% for day in opening_schema.openinghours_set.all %}
+        <tr {% if current_year == day.get_weekday_display|lower %} class="today" {% endif %}>
+        {% if day.from_hour %}
+            <td> {{ day.get_weekday_display }} </td>
+            <td> {{ day.from_hour }} - {{ day.to_hour }} </td>
+        {% else %}
+            <td> {{ day.get_weekday_display }}</td>
+        {% endif %}
+        </tr>
+    {% endfor %}
+    </table>
+</div>
+{% endif %}
+
+{% comment %} DEBUG {% endcomment %}
 {% for schema in poi.openinghoursschema_set.all %}
-    <span class="valid-date"> du {{ schema.valid_from }} au {{ schema.valid_through }}</span>
+    <div class="debug" style="color:lightgrey; margin-top:15px">
+        <span> du {{ schema.valid_from }} au {{ schema.valid_through }} </span>
+        {% for day in schema.openinghours_set.all %}
+            {% if day.from_hour %}
+                <span> {{ day.get_weekday_display }} de {{ day.from_hour }} à {{ day.to_hour }}</span>
+            {% else %}
+                <span> {{ day.get_weekday_display }}</span>
+            {% endif %}
+        {% endfor %}
+    </div>
 {% endfor %}
 </p>
