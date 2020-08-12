@@ -6,6 +6,7 @@ from django.views.generic import ListView
 from django.contrib.gis.geos import Polygon
 
 from .models import Category, OpeningHoursSchema, OpeningHours, PointOfInterest
+# from .models import Category, PointOfInterest
 
 import datetime
 import json

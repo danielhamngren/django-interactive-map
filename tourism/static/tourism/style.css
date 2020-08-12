@@ -68,6 +68,30 @@ aside .closebtn {
     transition: 0.25s;
 }
 
+aside .main-illustration{
+    position: relative;
+    margin-top: 10px;
+}
+
+aside .main-illustration img{
+    width: 100%;
+}
+
+.main-illustration .credits {
+	position: absolute;
+	bottom: 4px;
+	right: 0;
+	background-color: rgba(255, 255, 255, 0.5);
+	font-size: 9px;
+	margin: 0;
+	padding: 1px 3px;
+	color: #2b2b2b;
+}
+
+aside .content div:first-of-type {
+	margin-top: 10px;
+}
+
 .description::before{
     content: "Description";
 }

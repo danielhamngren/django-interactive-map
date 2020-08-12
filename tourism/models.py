@@ -53,7 +53,7 @@ class PointOfInterest(models.Model):
         return f"{self.name} ({self.city})"
 
 
-
+# == Management of opening hours ==
 def get_valid_through_default():
         return datetime.date(datetime.date.today().year, 12, 31)
 
@@ -98,3 +98,28 @@ class OpeningHours(models.Model):
 
     def __str__(self):
         return f"{self.schema.poi.name} {self.weekday} ({self.from_hour} - {self.to_hour})"
+
+# == Media ==
+class Media(models.Model):
+    title = models.CharField("légende", max_length=150, null=True, blank=True)
+    credits = models.CharField("crédits", max_length=100, null=True, blank=True)
+    picture = models.ImageField()
+
+    class Meta:
+        abstract = True
+        
+
+def poi_directory_path(instance, filename):
+    return f"poi_{instance.poi.id}/{filename}"
+
+class MainRepresentation(Media):
+    picture = models.ImageField(upload_to=poi_directory_path, verbose_name="image principale")
+    poi = models.OneToOneField(
+        PointOfInterest,
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
+
+    class Meta:
+        verbose_name = "image principale"
+        verbose_name_plural = "images principales"

@@ -7,6 +7,14 @@
 <span class="tag poi-id"><a href={{ poi.dt_id}}> {{ poi.id }}</a></span>
 
 {% comment %} <p> {{ poi.dt_categories }} </p> {% endcomment %}
+{% if poi.mainrepresentation %}
+<div class="main-illustration">
+    <img src="{{ poi.mainrepresentation.picture.url }}"alt="{{ poi.mainrepresentation.picture.title }}" draggable="false">
+    {% if poi.mainrepresentation.credits %}
+    <span class="credits"> {{ poi.mainrepresentation.credits }} </span>
+    {% endif %}
+</div>
+{% endif %}
 
 <div class="description">
     {{ poi.description|linebreaks }}
@@ -58,4 +66,3 @@
         {% endfor %}
     </div>
 {% endfor %}
-</p>

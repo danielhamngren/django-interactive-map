@@ -155,3 +155,8 @@ LEAFLET_CONFIG = {
             {'attribution': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>'}
     )],
 }
+
+# Media
+
+MEDIA_ROOT = "media/"
+MEDIA_URL = os.path.join(BASE_DIR, 'media/')
