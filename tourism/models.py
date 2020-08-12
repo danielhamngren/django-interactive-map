@@ -12,16 +12,15 @@ class Category(models.Model):
         verbose_name_plural = "categories"
 
     def __str__(self):
-        return f"[{self.tag}] {self.name}"
+        return f"{self.name}"
 
 def get_default_category():
     cat = Category.objects.get_or_create(tag="default")[0]
     cat.icon = "default"
     if not cat.name:
-        cat.name = "(pas de catégories)"
+        cat.name = "(pas de catégorie)"
     cat.save()
     return cat.id
-
 
 
 class PointOfInterest(models.Model):

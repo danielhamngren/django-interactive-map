@@ -1,7 +1,6 @@
 from django.contrib.gis import admin
 import nested_admin
 from .models import Category, MainRepresentation, OpeningHours, OpeningHoursSchema, PointOfInterest
-from .models import Category, MainRepresentation, PointOfInterest
 
 class GeoArgonne(admin.OSMGeoAdmin):
     default_zoom = 10
@@ -16,7 +15,7 @@ class OpeningSchemaInline(nested_admin.NestedTabularInline):
     inlines = [OpeningHoursInline]
     extra = 1
 
-class MainRepresentationInline(admin.TabularInline):
+class MainRepresentationInline(nested_admin.NestedTabularInline):
     model = MainRepresentation
 
 @admin.register(PointOfInterest)
@@ -28,6 +27,7 @@ class PointOfInterestAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
     fields = [
         'name',
         'description',
+        'category',
         'location',
         ('street_address', 'city'),
         ('email', 'phone', 'website')]
