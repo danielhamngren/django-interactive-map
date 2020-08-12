@@ -22,7 +22,7 @@
 
 <p class="address"> 
     <span class="address-street"> {{ poi.street_address }} </span>
-    <span class="address-city"> {{ poi.city }} </span>
+    <span class="address-city"> {{ poi.commune.name }} </span>
 </p>
 
 {% if poi.email or poi.phone or poi.website %}

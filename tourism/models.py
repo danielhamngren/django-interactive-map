@@ -23,11 +23,29 @@ def get_default_category():
     return cat.id
 
 
+# == Commune ==
+class Commune(models.Model):
+    name = models.CharField("nom", max_length=50)
+    geom = models.MultiPolygonField("géométrie", null=True)
+    insee = models.CharField(max_length=5, unique=True)
+    postal_code = models.CharField(max_length=5)
+    in_argonne_pnr = models.BooleanField("fait partie du PNR ?")
+
+    class Meta:
+        ordering = ('name',)
+
+    def __str__(self):
+        return f"{self.name}"
+
+
 class PointOfInterest(models.Model):
     name = models.CharField("nom", max_length=100)
     location = models.PointField("localication")
     street_address = models.CharField("adresse", max_length=100, blank=True)
-    city = models.CharField("commune", max_length=50)
+    commune = models.ForeignKey(
+        Commune,
+        on_delete=models.PROTECT,
+    )
     
     dt_id = models.CharField(max_length=200)
     dt_categories = models.TextField(max_length=300)
@@ -47,9 +65,8 @@ class PointOfInterest(models.Model):
         verbose_name = "point d'interêt"
         verbose_name_plural = "points d'interêt"
 
-
     def __str__(self):
-        return f"{self.name} ({self.city})"
+        return f"{self.name} ({self.commune.name})"
 
 
 # == Management of opening hours ==
