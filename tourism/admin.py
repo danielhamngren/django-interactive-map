@@ -20,7 +20,11 @@ class MainRepresentationInline(nested_admin.NestedTabularInline):
 
 @admin.register(Category)
 class CategoryAdmin(GeoArgonne):
-    fields = ['name', 'tag']
+    # fields = ['name', 'tag']
+    list_display = ('name', 'order')
+    ordering = ('order', )
+    list_editable = ('order', )
+    exclude = ('tag', 'order')
 
 @admin.register(Commune)
 class CommuneAdmin(GeoArgonne):

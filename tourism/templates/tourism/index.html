@@ -13,18 +13,45 @@
 {% endblock style %}
 
 {% block content %}
+<div id="filter-shortcut">
+    <ul>
+        <li><img src={% static 'tourism/icons/calendar.png' %} draggable=false></li>
+    </ul>
+    <ul id="#layers-control" class="filters">
+        {% for cat in category_list %}
+        <li id="#clicon-{{ cat.tag }}" class="tooltip" onclick="changeLayersState(this)" title="{{ cat.name }}">
+            {% with 'tourism/icons/'|add:cat.tag|add:'.png' as image_static %}
+            <img src={% static image_static %} draggable=false>
+            {% endwith %}
+            <span class="tooltiptext tooltiptext-right">{{ cat.name }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% comment %} <img src={% static 'tourism/icons/icon-event.png' %}>
+    <img src={% static 'tourism/icons/icon-tourism-info.png' %}>
+    <img src={% static 'tourism/icons/icon-cultural-site.png' %}> {% endcomment %}
+</div>
+
+<div id="result-sidebar" class="sidebar sidebar-movable">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav('#result-sidebar')">×</a>
+    <div class="content">
+        <h2> Filtres </h2>
+    </div>
+</div>
+
 <div id="main-sidebar" class="sidebar">
     <div class="content">
         <h1>Destination Argonne</h1>
-        <div id="layers-control"></div>
+
     </div>
 </div>
-<aside class="sidebar">
-    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+
+<div id="poi-sidebar" class="sidebar sidebar-movable">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav('#poi-sidebar')">×</a>
     <div class="content">
     {% comment %} {% include "tourism/sub/detail.html" %} {% endcomment %}
     </div>
-</aside>
+</div>
 
 
 {% leaflet_map "maCarte" callback="map_init" %}
@@ -40,28 +67,33 @@
     var markersLoaded = Object(); // store each loaded markers: {poi_id : _leaflet_id}
     var selectedMarker = Object(); 
     var controlLayers; // leaflet Control.layers
+    var categoriesSelected = Array();
     
     // Define the default marker
     var icons = Array();
     var iconProps = {
-        iconUrl: "{% static 'tourism/marker-default.png' %}",
+        iconUrl: "{% static 'tourism/markers/marker-default.svg' %}",
         iconSize: [24, 28],
         iconAnchor: [12, 28],
         popupAnchor: [0, -28],
         tooltipAnchor: [0, -14],
-        shadowUrl: "{% static 'tourism/marker-shadow.png' %}",
+        shadowUrl: "{% static 'tourism/markers/marker-shadow.png' %}",
         shadowSize: [16, 30],
         shadowAnchor: [8, 26]}
 
     icons["default"] = L.icon(iconProps);
 
-    function closeNav() {
-        $("aside").removeClass("active");
+    function closeNav(id) {
+        $(id).removeClass("active");
+    }
+
+    function showNav(id) {
+        $(id).addClass("active");
     }
 
     function getIcon(tag) {
         if (icons[tag] == null) {
-            var base_url = "{% static 'tourism/marker-' %}";
+            var base_url = "{% static 'tourism/markers/marker-' %}";
             iconProps["iconUrl"] = base_url + tag + '.png';
             icons[tag] = L.icon(iconProps);
         }
@@ -74,11 +106,15 @@
         $.ajax({
             type: 'GET',
             url: "{% url 'tourism:poi_load' %}",
-            data: {"bounds": JSON.stringify(bounds)},
+            data: {
+                "bounds": JSON.stringify(bounds),
+                "categories": JSON.stringify(categoriesSelected)
+            },
             success: function (response) {
                 // map.setView(position);
                 // response;
-                $("body").append(response);
+                // $("body").append(response);
+                $("#main-sidebar .content").html(response);
             },
             error: function(response) {
                 console.log("Échec de la requête AJAX (loadMarkers)");
@@ -87,25 +123,33 @@
         })
     }
 
-    function changeLayersState(input) {
-        if (input.checked) {
-            map.addLayer(markersLayers[input.id]);
-            input.parentNode.parentNode.classList.add("checked");
+    function changeLayersState(iconCategory) {
+        // console.log(iconCategory);
+        tag = iconCategory.id.slice(8); // remove '#clicon-" from #clicon-tag-name
+        if (categoriesSelected.includes(tag)) {
+            iconCategory.classList.remove("checked");
+            map.removeLayer(markersLayers[tag]);
+            const index = categoriesSelected.indexOf(tag);
+            if (index > -1) {
+                categoriesSelected.splice(index, 1)
+            }
         } else {
-            input.parentNode.parentNode.classList.remove("checked");
-            map.removeLayer(markersLayers[input.id]);
+            map.addLayer(markersLayers[tag]);
+            iconCategory.classList.add("checked");
+            categoriesSelected.push(tag);
         }
+        loadMarkers()
     }
 
     function createLayersByCategory() {
-        layerSwitcher = $("#layers-control");
+        // layerSwitcher = $("#layers-control");
 
         {% for cat in category_list %}
             // Create new LayerGroup
             markersLayers["{{ cat.tag }}"] = new L.LayerGroup();
             
             // Create inputs to remove/add layerGroups (cf. changeLayersState)
-            label = $("<label>", {for: "{{ cat.tag }}"});
+            /*label = $("<label>", {for: "{{ cat.tag }}"});
             labelDiv = $("<div>").appendTo(label);
             $("<input>", {
                 type:"checkbox",
@@ -114,17 +158,34 @@
                 checked: "{{ cat.tag }}" == "event",
                 onchange:"changeLayersState(this)"}).appendTo(labelDiv);
             $("<span>").html("{{ cat.name }}").appendTo(labelDiv);
-            label.appendTo(layerSwitcher)
+            label.appendTo(layerSwitcher)*/
 
         {% endfor %}
 
         // Init: display default layers
-        inputs = $("#layers-control input");
+        // changeLayersState($("#clicon-event"));
+        /*inputs = $("#layers-control input");
         for (i = 0; i < inputs.length; i++) {
             changeLayersState(inputs[i]);
-        }
+        }*/
     }
 
+    function displayPoiDetails(poi_id){
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'tourism:poi_detail' %}",
+            data: {"poi_id": poi_id},
+            success: function (response) {
+                // map.setView(position);
+                $("#poi-sidebar .content").html(response);
+                showNav("#poi-sidebar")
+            },
+            error: function(response) {
+                console.log("Échec de la requête AJAX (GET POI details)");
+                console.log(response);
+            }
+        })
+    }
 
     function onMarkerClick(e) {
         // 1. Emphasize the corresponding icon
@@ -149,20 +210,7 @@
 
         // 2. Get details from the selected POI        
         var poi_id = $(this).attr('data-id');
-        $.ajax({
-            type: 'GET',
-            url: "{% url 'tourism:poi_detail' %}",
-            data: {"poi_id": poi_id},
-            success: function (response) {
-                // map.setView(position);
-                $("aside .content").html(response);
-                $("aside").addClass("active");
-            },
-            error: function(response) {
-                console.log("Échec de la requête AJAX (GET POI details)");
-                console.log(response);
-            }
-        })
+        displayPoiDetails(poi_id)
     }
 
 
@@ -193,7 +241,7 @@
         });
 
         map.on('click', function() {
-            closeNav();
+            closeNav('#poi-sidebar');
         });
 
         // Display Argonne's contour

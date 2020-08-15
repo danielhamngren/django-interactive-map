@@ -1,7 +1,33 @@
 {% load l10n %}
 
+<h1> {{ poi_list | length }} Résultat(s) </h1>
+<div class="results">
+{% for poi in poi_list %}
+    <article class="card">
+        <header class="thumb">
+        {% if poi.mainrepresentation %}
+            {% comment %} <header class="thumb" style="background-image: url('{{ poi.mainrepresentation.picture.url }}')"></header> {% endcomment %}
+            <img src="{{ poi.mainrepresentation.picture.url }}" alt="{{ poi.mainrepresentation.picture.title }}" draggable="false">
+        {% else %}
+            
+        {% endif %}
+        </header>
+        <div class="body">
+            <h2 class="title" onclick="displayPoiDetails({{poi.id}})"> {{ poi.name }}</h2>
+            <div class="subtitle">
+                <span class="city">{{ poi.commune.name }}</span>
+            </div>
+            <p>{{ poi.description }}</p>
+            <div class="rect"></div>
+            <div class="rect_white"></div>
+        </div>
+    </article>
+{% endfor %}
+</div>
+
 <script>
 {% localize off %}
+    console.log("{{ categories }}")
     // console.log("{{ poi_list | length}} POIs loaded");
     // console.log("markersLoaded Before", markersLoaded);
     // markersLayer.clearLayers();

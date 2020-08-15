@@ -1,5 +1,5 @@
 from django.core import serializers
-from django.http import JsonResponse, HttpResponseNotAllowed
+from django.http import JsonResponse, HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import ListView
 
@@ -16,7 +16,7 @@ class IndexView(ListView):
     context_object_name = 'category_list'
 
     def get_queryset(self):
-        return Category.objects.all()
+        return Category.objects.all().order_by('order')
 
 # def detail(request):
 #     # return JsonResponse({"error": False}, status=200)
@@ -49,10 +49,17 @@ def detail(request):
 def visible_poi(request):
     if request.is_ajax and request.method == "GET":
         bounds = json.loads(request.GET.get("bounds", None))
+        categories = json.loads(request.GET.get("categories", None))
+        
         sw, ne = bounds["_southWest"], bounds["_northEast"]
         bbox = (sw["lng"], sw["lat"], ne["lng"], ne["lat"])
         geom = Polygon.from_bbox(bbox)
-        poi_list = PointOfInterest.objects.filter(location__contained=geom)
-        return render(request, 'tourism/index/_poi_loader.html', {'poi_list': poi_list})
+        poi_list = PointOfInterest.objects.filter(
+            location__contained=geom,
+            category__tag__in=categories
+        )
+                
+        content = {'poi_list': poi_list}
+        return render(request, 'tourism/index/_poi_loader.html', content)
     else:
         return HttpResponseNotAllowed(('GET',))

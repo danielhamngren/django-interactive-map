@@ -6,6 +6,7 @@ class Category(models.Model):
     name = models.CharField(max_length=150)
     tag = models.CharField(max_length=100, unique=True)
     icon = models.CharField(max_length=100)
+    order = models.IntegerField("ordre")
 
     class Meta:
         verbose_name = "categorie"

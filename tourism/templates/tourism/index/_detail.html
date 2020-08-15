@@ -2,19 +2,24 @@
 <h1 class="poi-name"> {{ poi.name |upper }} </h1>
 
 {% if poi.category.tag != 'default' %}
-<span class="tag poi-category"> {{ poi.category.name }}</span>
+    <span class="tag poi-category"> {{ poi.category.name }}</span>
 {% endif %}
-<span class="tag poi-id"><a href={{ poi.dt_id}}> {{ poi.id }}</a></span>
 
-{% comment %} <p> {{ poi.dt_categories }} </p> {% endcomment %}
-{% if poi.mainrepresentation %}
-<div class="main-illustration">
-    <img src="{{ poi.mainrepresentation.picture.url }}"alt="{{ poi.mainrepresentation.picture.title }}" draggable="false">
-    {% if poi.mainrepresentation.credits %}
-    <span class="credits"> {{ poi.mainrepresentation.credits }} </span>
+{% if user.is_authenticated %}
+    <span class="tag poi-id"><a href={{ poi.dt_id}}> {{ poi.id }}</a></span>
+    <span class="tag tag-red"><a href="{% url 'admin:tourism_pointofinterest_change' poi.id%}">admin</a></span>
+
+    <p> {{ poi.dt_categories }} </p>
+    {% if poi.mainrepresentation %}
+    <div class="main-illustration">
+        <img src="{{ poi.mainrepresentation.picture.url }}" alt="{{ poi.mainrepresentation.picture.title }}" draggable="false">
+        {% if poi.mainrepresentation.credits %}
+        <span class="credits"> {{ poi.mainrepresentation.credits }} </span>
+        {% endif %}
+    </div>
     {% endif %}
-</div>
 {% endif %}
+
 
 <div class="description">
     {{ poi.description|linebreaks }}
@@ -54,6 +59,8 @@
 {% endif %}
 
 {% comment %} DEBUG {% endcomment %}
+{% if user.is_authenticated %}
+
 {% for schema in poi.openinghoursschema_set.all %}
     <div class="debug" style="color:lightgrey; margin-top:15px">
         <span> du {{ schema.valid_from }} au {{ schema.valid_through }} </span>
@@ -66,3 +73,5 @@
         {% endfor %}
     </div>
 {% endfor %}
+
+{% endif %}
