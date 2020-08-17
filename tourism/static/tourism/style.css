@@ -55,13 +55,6 @@ h1, h2, h3, h4, h5 {
     border-color: transparent white transparent transparent;
   }
 
-.leaflet-container{
-    height: 100vh;
-    width: calc(100vw - 25rem);
-    /* font-family: Roboto; */
-    /* font-weight: bold; */
-}
-
 .sidebar {
     flex: 0 0 25rem;
     height: 100vh;
@@ -77,8 +70,22 @@ h1, h2, h3, h4, h5 {
     padding: 1.5em;
     display: block;
 }
+/* ----- LEAFLET ----- */
+.leaflet-container{
+    height: 100vh;
+    width: calc(100vw - 25rem);
+    /* font-family: Roboto; */
+    /* font-weight: bold; */
+}
 
+.leaflet-interactive.argonne-geojson {
+    cursor: grab;
+}
 /* ----- MAIN SIDEBAR (RESULTS) ----- */
+
+#loading-img {
+    width: 400px;
+}
 
 #main-sidebar{
     z-index: 500;

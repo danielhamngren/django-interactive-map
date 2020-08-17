@@ -40,14 +40,14 @@
 </div>
 
 <div id="main-sidebar" class="sidebar">
+    {% comment %} <img id="loading-img" src={% static 'tourism/loader.gif' %} draggable=false}> {% endcomment %}
     <div class="content">
         <h1>Destination Argonne</h1>
-
     </div>
 </div>
 
 <div id="poi-sidebar" class="sidebar sidebar-movable">
-    <a href="javascript:void(0)" class="closebtn" onclick="closeNav('#poi-sidebar')">×</a>
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav('#poi-sidebar');resetSelectedMarker()">×</a>
     <div class="content">
     {% comment %} {% include "tourism/sub/detail.html" %} {% endcomment %}
     </div>
@@ -63,7 +63,8 @@
     {% localize off %}
     // Layers
     var map; // leaflet Map
-    var markersLayers = Object(); // store each layers: {tag : leaflet LayerGroup}
+    var mainLayer =  new L.LayerGroup();
+    // var markersLayers = Object(); // store each layers: {tag : leaflet LayerGroup}
     var markersLoaded = Object(); // store each loaded markers: {poi_id : _leaflet_id}
     var selectedMarker = Object(); 
     var controlLayers; // leaflet Control.layers
@@ -103,6 +104,7 @@
     function loadMarkers() {
         // markersLayer.clearLayers();
         var bounds = map.getBounds();
+        // $("#loading-img").show();
         $.ajax({
             type: 'GET',
             url: "{% url 'tourism:poi_load' %}",
@@ -116,6 +118,9 @@
                 // $("body").append(response);
                 $("#main-sidebar .content").html(response);
             },
+            complete: function() {
+                // $("#loading-img").hide();
+            },
             error: function(response) {
                 console.log("Échec de la requête AJAX (loadMarkers)");
                 console.log(response);
@@ -128,13 +133,13 @@
         tag = iconCategory.id.slice(8); // remove '#clicon-" from #clicon-tag-name
         if (categoriesSelected.includes(tag)) {
             iconCategory.classList.remove("checked");
-            map.removeLayer(markersLayers[tag]);
+            // map.removeLayer(markersLayers[tag]);
             const index = categoriesSelected.indexOf(tag);
             if (index > -1) {
                 categoriesSelected.splice(index, 1)
             }
         } else {
-            map.addLayer(markersLayers[tag]);
+            // map.addLayer(markersLayers[tag]);
             iconCategory.classList.add("checked");
             categoriesSelected.push(tag);
         }
@@ -186,10 +191,17 @@
             }
         })
     }
+    function emphasizeMarker(my_icon) {     
+        my_icon.style.width = "30px";
+        my_icon.style.height = "35px";
+        my_icon.style.marginLeft = '-15px'
+        my_icon.style.marginTop = '-35px'
+        selectedMarker["z-index"] = my_icon.style.zIndex;
+        my_icon.style.zIndex = 5000;
+        selectedMarker["icon"] = my_icon;
+    }
 
-    function onMarkerClick(e) {
-        // 1. Emphasize the corresponding icon
-        
+    function resetSelectedMarker(){
         if (Object.entries(selectedMarker).length) {
             // Reset the previously selected icon
             selectedMarker["icon"].style.width = "24px";
@@ -198,28 +210,42 @@
             selectedMarker["icon"].style.marginTop = "-28px";
             selectedMarker["icon"].style.zIndex = selectedMarker["z-index"];
         }
+    }
+
+    function onMarkerClick(e) {
+        // 1. Emphasize the corresponding icon
 
         var my_icon = $(this)[0]._icon;
-        my_icon.style.width = "30px";
-        my_icon.style.height = "35px";
-        my_icon.style.marginLeft = '-15px'
-        my_icon.style.marginTop = '-35px'
-        selectedMarker["z-index"] = my_icon.style.zIndex;
-        my_icon.style.zIndex = 5000;
-        selectedMarker["icon"] = my_icon;
+        resetSelectedMarker();
+        emphasizeMarker(my_icon);
 
         // 2. Get details from the selected POI        
         var poi_id = $(this).attr('data-id');
-        displayPoiDetails(poi_id)
+        displayPoiDetails(poi_id);
     }
 
+    function onResultHover(poi_id) {
+        emphasizeMarker(mainLayer.getLayer(markersLoaded[poi_id])._icon);
+    }
+
+    function onResultClick(elmt, poi_id) {
+        console.log($(elmt));
+        console.log($(elmt).attr("onmouseleave", "console.log('LEAVE')"));
+        var my_icon = mainLayer.getLayer(markersLoaded[poi_id])._icon;
+        displayPoiDetails(poi_id);
+        setTimeout(function(){
+            console.log($(elmt).attr("onmouseleave", "resetSelectedMarker()"));
+        }, 700);
+    }
 
     function map_init(mmap, options) {
         map = mmap; // store the object in a variable
         controlLayers = map.layerscontrol;
 
         // Display initial markers
-        createLayersByCategory();
+        // createLayersByCategory();
+        // $("#loading-img").hide()
+        map.addLayer(mainLayer);
         loadMarkers();
 			
 		/*map.on('drag', function(e) {
@@ -242,6 +268,7 @@
 
         map.on('click', function() {
             closeNav('#poi-sidebar');
+            resetSelectedMarker();
         });
 
         // Display Argonne's contour
@@ -252,6 +279,7 @@
                     color: "#95a98c",
                     weight: 1.3,
                     fillOpacity: 0,
+                    className: "argonne-geojson",
                 }                
             }).addTo(map);
             argonneBoundary.bringToBack();

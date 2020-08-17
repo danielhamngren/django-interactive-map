@@ -3,7 +3,7 @@
 <h1> {{ poi_list | length }} Résultat(s) </h1>
 <div class="results">
 {% for poi in poi_list %}
-    <article class="card">
+    <article class="card" onmouseover="onResultHover({{poi.id}})" onmouseleave="resetSelectedMarker()" onclick="onResultClick(this, {{poi.id}})">
         <header class="thumb">
         {% if poi.mainrepresentation %}
             {% comment %} <header class="thumb" style="background-image: url('{{ poi.mainrepresentation.picture.url }}')"></header> {% endcomment %}
@@ -13,7 +13,7 @@
         {% endif %}
         </header>
         <div class="body">
-            <h2 class="title" onclick="displayPoiDetails({{poi.id}})"> {{ poi.name }}</h2>
+            <h2 class="title"> {{ poi.name }}</h2>
             <div class="subtitle">
                 <span class="city">{{ poi.commune.name }}</span>
             </div>
@@ -27,10 +27,6 @@
 
 <script>
 {% localize off %}
-    console.log("{{ categories }}")
-    // console.log("{{ poi_list | length}} POIs loaded");
-    // console.log("markersLoaded Before", markersLoaded);
-    // markersLayer.clearLayers();
     var markersLoadedNew = Object(); // key: id -> value: leaflet_id
     // Add all new markers
     {% for poi in poi_list %}
@@ -43,7 +39,8 @@
             });
             marker.on('click', onMarkerClick);
             marker['data-id'] = poi_id;
-            markersLayers["{{ poi.category.tag }}"].addLayer(marker);
+            mainLayer.addLayer(marker);
+            // markersLayers["{{ poi.category.tag }}"].addLayer(marker);
             markersLoadedNew[poi_id] = marker._leaflet_id;
         } else {
             markersLoadedNew[poi_id] = markersLoaded[poi_id]
@@ -57,13 +54,19 @@
     leafletIdToKeep = Object.values(markersLoadedNew);
     // console.log("leafletIdToKeep", leafletIdToKeep);
 
-    Object.values(markersLayers).forEach((layerGroup) => {
+    mainLayer.eachLayer(function (layer) {
+        if (!(leafletIdToKeep.includes(layer._leaflet_id))) {
+            mainLayer.removeLayer(layer);
+        }
+    });
+
+    /*Object.values(markersLayers).forEach((layerGroup) => {
         layerGroup.eachLayer(function (layer) {
             if (!(leafletIdToKeep.includes(layer._leaflet_id))) {
                 layerGroup.removeLayer(layer);
             }
         });
-    });
+    });*/
     markersLoaded = markersLoadedNew;
 
 {% endlocalize %}
