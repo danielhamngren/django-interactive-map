@@ -1,0 +1,6 @@
+<div id="date-filter">
+    <label for="start">du :</label>
+    <input type="date" id="start" name="trip-start" value={% now "Y-m-j" %} onchange="onDateChange()">
+    <label for="end">au :</label>
+    <input type="date" id="end" name="trip-end" onchange="onDateChange()">
+</div>

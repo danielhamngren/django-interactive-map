@@ -66,7 +66,7 @@ h1, h2, h3, h4, h5 {
     overflow-y: auto;
 }
 
-.sidebar .content{
+.sidebar .content {
     padding: 1.5em;
     display: block;
 }
@@ -89,6 +89,11 @@ h1, h2, h3, h4, h5 {
 
 #main-sidebar{
     z-index: 500;
+}
+
+#date-filter{
+    padding: 1em 1.5em 0 1.5em;
+    display: block;
 }
 
 #main-sidebar .card {

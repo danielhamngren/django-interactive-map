@@ -39,13 +39,31 @@
 {% endif %}
 
 {% now "l" as current_year %}
-{% if opening_schema %}
+{% if current_opening_schema %}
 <div class="opening-schema">
-    <p> du {{ opening_schema.valid_from }} au {{ opening_schema.valid_through }} </p>
+    <p> jusqu'au {{ current_opening_schema.valid_through }} </p>
     
     <table>
-    {% for day in opening_schema.openinghours_set.all %}
+    {% for day in current_opening_schema.openinghours_set.all %}
         <tr {% if current_year == day.get_weekday_display|lower %} class="today" {% endif %}>
+        {% if day.from_hour %}
+            <td> {{ day.get_weekday_display }} </td>
+            <td> {{ day.from_hour }} - {{ day.to_hour }} </td>
+        {% else %}
+            <td> {{ day.get_weekday_display }}</td>
+        {% endif %}
+        </tr>
+    {% endfor %}
+    </table>
+</div>
+{% endif %}
+{% if requested_opening_schema %}
+<div class="opening-schema">
+    <p> du {{ requested_opening_schema.valid_from }} au {{ requested_opening_schema.valid_through }} </p>
+    
+    <table>
+    {% for day in requested_opening_schema.openinghours_set.all %}
+        <tr>
         {% if day.from_hour %}
             <td> {{ day.get_weekday_display }} </td>
             <td> {{ day.from_hour }} - {{ day.to_hour }} </td>

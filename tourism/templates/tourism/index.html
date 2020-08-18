@@ -41,6 +41,7 @@
 
 <div id="main-sidebar" class="sidebar">
     {% comment %} <img id="loading-img" src={% static 'tourism/loader.gif' %} draggable=false}> {% endcomment %}
+    {% include "tourism/index/_date.html" %}  
     <div class="content">
         <h1>Destination Argonne</h1>
     </div>
@@ -59,8 +60,11 @@
 
 
 {% block javascript %}
+<script src="{% static 'tourism/utils.js' %}"></script>
 <script type="text/javascript">
     {% localize off %}
+
+    /* ===== VAR INIT ===== */
     // Layers
     var map; // leaflet Map
     var mainLayer =  new L.LayerGroup();
@@ -84,6 +88,8 @@
 
     icons["default"] = L.icon(iconProps);
 
+    /* ===== UTILS ===== */
+
     function closeNav(id) {
         $(id).removeClass("active");
     }
@@ -99,98 +105,8 @@
             icons[tag] = L.icon(iconProps);
         }
         return icons[tag]
-    }
-
-    function loadMarkers() {
-        // markersLayer.clearLayers();
-        var bounds = map.getBounds();
-        // $("#loading-img").show();
-        $.ajax({
-            type: 'GET',
-            url: "{% url 'tourism:poi_load' %}",
-            data: {
-                "bounds": JSON.stringify(bounds),
-                "categories": JSON.stringify(categoriesSelected)
-            },
-            success: function (response) {
-                // map.setView(position);
-                // response;
-                // $("body").append(response);
-                $("#main-sidebar .content").html(response);
-            },
-            complete: function() {
-                // $("#loading-img").hide();
-            },
-            error: function(response) {
-                console.log("Échec de la requête AJAX (loadMarkers)");
-                console.log(response);
-            }
-        })
-    }
-
-    function changeLayersState(iconCategory) {
-        // console.log(iconCategory);
-        tag = iconCategory.id.slice(8); // remove '#clicon-" from #clicon-tag-name
-        if (categoriesSelected.includes(tag)) {
-            iconCategory.classList.remove("checked");
-            // map.removeLayer(markersLayers[tag]);
-            const index = categoriesSelected.indexOf(tag);
-            if (index > -1) {
-                categoriesSelected.splice(index, 1)
-            }
-        } else {
-            // map.addLayer(markersLayers[tag]);
-            iconCategory.classList.add("checked");
-            categoriesSelected.push(tag);
         }
-        loadMarkers()
-    }
 
-    function createLayersByCategory() {
-        // layerSwitcher = $("#layers-control");
-
-        {% for cat in category_list %}
-            // Create new LayerGroup
-            markersLayers["{{ cat.tag }}"] = new L.LayerGroup();
-            
-            // Create inputs to remove/add layerGroups (cf. changeLayersState)
-            /*label = $("<label>", {for: "{{ cat.tag }}"});
-            labelDiv = $("<div>").appendTo(label);
-            $("<input>", {
-                type:"checkbox",
-                id: "{{ cat.tag }}",
-                name:"category-layer",
-                checked: "{{ cat.tag }}" == "event",
-                onchange:"changeLayersState(this)"}).appendTo(labelDiv);
-            $("<span>").html("{{ cat.name }}").appendTo(labelDiv);
-            label.appendTo(layerSwitcher)*/
-
-        {% endfor %}
-
-        // Init: display default layers
-        // changeLayersState($("#clicon-event"));
-        /*inputs = $("#layers-control input");
-        for (i = 0; i < inputs.length; i++) {
-            changeLayersState(inputs[i]);
-        }*/
-    }
-
-    function displayPoiDetails(poi_id){
-        $.ajax({
-            type: 'GET',
-            url: "{% url 'tourism:poi_detail' %}",
-            data: {"poi_id": poi_id},
-            success: function (response) {
-                // map.setView(position);
-                $("#poi-sidebar .content").html(response);
-                showNav("#poi-sidebar")
-            },
-            error: function(response) {
-                console.log("Échec de la requête AJAX (GET POI details)");
-                console.log(response);
-            }
-        })
-    }
     function emphasizeMarker(my_icon) {     
         my_icon.style.width = "30px";
         my_icon.style.height = "35px";
@@ -212,6 +128,90 @@
         }
     }
 
+    /* ===== REQUESTS ===== */
+
+    function loadMarkers() {
+        // markersLayer.clearLayers();
+        var bounds = map.getBounds();
+        // $("#loading-img").show();
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'tourism:poi_load' %}",
+            data: {
+                "bounds": JSON.stringify(bounds),
+                "categories": JSON.stringify(categoriesSelected),
+                "date-from": $("#date-filter #start").val() || undefined,
+                "date-to": $("#date-filter #end").val() || undefined,
+            },
+            success: function (response) {
+                // map.setView(position);
+                // response;
+                // $("body").append(response);
+                $("#main-sidebar .content").html(response);
+            },
+            complete: function() {
+                // $("#loading-img").hide();
+            },
+            error: function(response) {
+                console.log("Échec de la requête AJAX (loadMarkers)");
+                console.log(response);
+            }
+        })
+    }
+
+
+    function displayPoiDetails(poi_id){
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'tourism:poi_detail' %}",
+            data: {
+                "poi_id": poi_id,
+                "date-from": $("#date-filter #start").val() || undefined,
+                "date-to": $("#date-filter #end").val() || undefined,
+            },
+            success: function (response) {
+                // map.setView(position);
+                $("#poi-sidebar .content").html(response);
+                showNav("#poi-sidebar")
+            },
+            error: function(response) {
+                console.log("Échec de la requête AJAX (GET POI details)");
+                console.log(response);
+            }
+        })
+    }
+
+    /* ===== ACTIONS / TRIGGERS ===== */
+   
+    /* ----- Categories ----- */
+
+    function changeLayersState(iconCategory) {
+        // console.log(iconCategory);
+        tag = iconCategory.id.slice(8); // remove '#clicon-" from #clicon-tag-name
+        if (categoriesSelected.includes(tag)) {
+            iconCategory.classList.remove("checked");
+            // map.removeLayer(markersLayers[tag]);
+            const index = categoriesSelected.indexOf(tag);
+            if (index > -1) {
+                categoriesSelected.splice(index, 1)
+            }
+        } else {
+            // map.addLayer(markersLayers[tag]);
+            iconCategory.classList.add("checked");
+            categoriesSelected.push(tag);
+        }
+        loadMarkers();
+    }
+
+    /* ----- Date ----- */
+    
+    function onDateChange(){
+        loadMarkers();
+    }
+
+
+    /* ----- Markers ----- */
+
     function onMarkerClick(e) {
         // 1. Emphasize the corresponding icon
 
@@ -224,19 +224,22 @@
         displayPoiDetails(poi_id);
     }
 
+    /* ----- Results ----- */
+
     function onResultHover(poi_id) {
         emphasizeMarker(mainLayer.getLayer(markersLoaded[poi_id])._icon);
     }
 
     function onResultClick(elmt, poi_id) {
-        console.log($(elmt));
-        console.log($(elmt).attr("onmouseleave", "console.log('LEAVE')"));
+        $(elmt).attr("onmouseleave", "");
         var my_icon = mainLayer.getLayer(markersLoaded[poi_id])._icon;
         displayPoiDetails(poi_id);
         setTimeout(function(){
-            console.log($(elmt).attr("onmouseleave", "resetSelectedMarker()"));
+            $(elmt).attr("onmouseleave", "resetSelectedMarker()");
         }, 700);
     }
+
+    /* ===== MAP INIT ===== */
 
     function map_init(mmap, options) {
         map = mmap; // store the object in a variable

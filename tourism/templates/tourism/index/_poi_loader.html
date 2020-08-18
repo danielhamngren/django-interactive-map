@@ -1,6 +1,19 @@
 {% load l10n %}
+{% if error %}
+<p class="tag"> {{ error }}</p>
+{% else %}
 
-<h1> {{ poi_list | length }} Résultat(s) </h1>
+{% comment %} {% if poi_list %} {% endcomment %}
+<h1> {{ poi_list.count }} Résultat{{ poi_list.count|pluralize}} </h1>
+{% comment %} {% endif %} {% endcomment %}
+{% comment %} {% include "tourism/index/_date.html" %}   {% endcomment %}
+
+<div class="debug">
+    {% comment %} <h4> {{ datee }} </h4> {% endcomment %}
+</div>
+
+
+
 <div class="results">
 {% for poi in poi_list %}
     <article class="card" onmouseover="onResultHover({{poi.id}})" onmouseleave="resetSelectedMarker()" onclick="onResultClick(this, {{poi.id}})">
@@ -71,3 +84,4 @@
 
 {% endlocalize %}
 </script>
+{% endif %}
