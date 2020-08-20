@@ -87,9 +87,9 @@ def visible_poi(request):
         poi_list = PointOfInterest.objects.filter(
             location__contained=geom,
             category__tag__in=categories,
-            openinghoursschema__valid_from__lte = date_end,
-            openinghoursschema__valid_through__gte = date_start,
-            openinghoursschema__openinghours__weekday__in = utils.get_isoweekdays_btw_dates(date_start, date_end),
+            # openinghoursschema__valid_from__lte = date_end,
+            # openinghoursschema__valid_through__gte = date_start,
+            # openinghoursschema__openinghours__weekday__in = utils.get_isoweekdays_btw_dates(date_start, date_end),
         ).distinct()
                 
         content = {'poi_list': poi_list}

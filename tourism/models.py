@@ -1,4 +1,5 @@
 from django.contrib.gis.db import models
+
 import datetime
 # from django.utils.translation import gettext_lazy as _
 
@@ -38,7 +39,7 @@ class Commune(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-
+# == POIs ==
 class PointOfInterest(models.Model):
     name = models.CharField("nom", max_length=100)
     location = models.PointField("localication")
@@ -68,6 +69,26 @@ class PointOfInterest(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.commune.name})"
+
+class Place():
+    pass
+
+class Tour(PointOfInterest):
+    path = models.MultiLineStringField("chemin", null=True)
+
+    class Meta:
+        verbose_name = "randonnée"
+        verbose_name_plural = "randonnées"
+
+    @property
+    def length(self):
+        length_m = self.path.transform(3035, clone=True).length  # change coordinates system
+        length_km = round(length_m / 1000, 2)
+        return length_km
+
+
+class Event():
+    pass
 
 
 # == Management of opening hours ==

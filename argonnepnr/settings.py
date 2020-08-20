@@ -160,3 +160,8 @@ LEAFLET_CONFIG = {
 
 MEDIA_ROOT = "media/"
 MEDIA_URL = os.path.join(BASE_DIR, 'media/')
+
+# File
+FILE_UPLOAD_HANDLERS = [
+    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
+]
