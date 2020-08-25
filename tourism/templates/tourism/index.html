@@ -107,7 +107,8 @@
         return icons[tag]
         }
 
-    function emphasizeMarker(my_icon) {     
+    function emphasizeMarker(marker) { 
+        var my_icon = marker._icon;
         my_icon.style.width = "30px";
         my_icon.style.height = "35px";
         my_icon.style.marginLeft = '-15px'
@@ -115,6 +116,19 @@
         selectedMarker["z-index"] = my_icon.style.zIndex;
         my_icon.style.zIndex = 5000;
         selectedMarker["icon"] = my_icon;
+
+        // emphasize Tour
+        if (marker['data-tour']) {
+            var path = marker['data-tour'];
+            path.setStyle({
+                weight: 5,
+                color: '#784421',
+                // dashArray: '5, 10',
+                opacity: 1,
+            });
+            selectedMarker["tour"] = path;
+        }
+        
     }
 
     function resetSelectedMarker(){
@@ -125,6 +139,16 @@
             selectedMarker["icon"].style.marginLeft = "-12px";
             selectedMarker["icon"].style.marginTop = "-28px";
             selectedMarker["icon"].style.zIndex = selectedMarker["z-index"];
+
+            // de-emphasize Tour
+            if (selectedMarker["tour"]) {
+                selectedMarker["tour"].setStyle({
+                    weight: 3,
+                    color: "#a05a2c",
+                    opacity: 0.7,
+                });
+                selectedMarker["tour"] = undefined;
+            }
         }
     }
 
@@ -214,20 +238,25 @@
 
     function onMarkerClick(e) {
         // 1. Emphasize the corresponding icon
-
-        var my_icon = $(this)[0]._icon;
+        // var my_icon = $(this)[0]._icon;
         resetSelectedMarker();
-        emphasizeMarker(my_icon);
+        emphasizeMarker($(this)[0]);
 
         // 2. Get details from the selected POI        
         var poi_id = $(this).attr('data-id');
         displayPoiDetails(poi_id);
     }
 
+    function onTourClick(e) {
+        var marker = $(this).attr("data-marker");
+        marker.fire('click');
+    }
+
     /* ----- Results ----- */
 
     function onResultHover(poi_id) {
-        emphasizeMarker(mainLayer.getLayer(markersLoaded[poi_id])._icon);
+        var my_marker = mainLayer.getLayer(markersLoaded[poi_id])
+        emphasizeMarker(my_marker);
     }
 
     function onResultClick(elmt, poi_id) {

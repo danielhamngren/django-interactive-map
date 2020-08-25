@@ -343,6 +343,12 @@ h1, h2, h3, h4, h5 {
 	color: #931c36;
 }
 
+.tag.tag-brown {
+	background: #d79164;
+	border-color: #a86334;
+	color: #4f2d16;
+}
+
 .tag a {
     text-decoration: none;
     color: unset;

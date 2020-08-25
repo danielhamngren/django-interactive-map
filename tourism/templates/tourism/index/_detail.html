@@ -20,6 +20,9 @@
     {% endif %}
 {% endif %}
 
+{% if poi.tour %}
+<span class="tag tag-brown"> {{ poi.tour.length }} km </span>
+{% endif %}
 
 <div class="description">
     {{ poi.description|linebreaks }}

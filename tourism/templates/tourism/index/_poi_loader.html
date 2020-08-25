@@ -55,6 +55,23 @@
             mainLayer.addLayer(marker);
             // markersLayers["{{ poi.category.tag }}"].addLayer(marker);
             markersLoadedNew[poi_id] = marker._leaflet_id;
+            
+            if ("{{ poi.tour }}") { // TOUR : display path
+                var tour_path = '{{ poi.tour.path.json | safe }}';
+                var tour_path_geo = L.geoJSON(JSON.parse(tour_path), {
+                    style: {
+                        color: "#a05a2c",
+                        opacity: 0.7,
+                    },
+                    bubblingMouseEvents: false, // prevent click on map to be triggered
+                });
+                tour_path_geo.on('click', onTourClick);
+                tour_path_geo.addTo(map);
+
+                // Bind path with its marker
+                tour_path_geo['data-marker'] = marker;
+                marker['data-tour'] = tour_path_geo;
+            }
         } else {
             markersLoadedNew[poi_id] = markersLoaded[poi_id]
         }
@@ -67,9 +84,12 @@
     leafletIdToKeep = Object.values(markersLoadedNew);
     // console.log("leafletIdToKeep", leafletIdToKeep);
 
-    mainLayer.eachLayer(function (layer) {
-        if (!(leafletIdToKeep.includes(layer._leaflet_id))) {
-            mainLayer.removeLayer(layer);
+    mainLayer.eachLayer(function (marker) {
+        if (!(leafletIdToKeep.includes(marker._leaflet_id))) {
+            mainLayer.removeLayer(marker);
+            if (marker['data-tour']) { // If TOUR
+                map.removeLayer(marker['data-tour']);
+            }
         }
     });
 

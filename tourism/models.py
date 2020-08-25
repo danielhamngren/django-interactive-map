@@ -76,15 +76,22 @@ class Place():
 class Tour(PointOfInterest):
     path = models.MultiLineStringField("chemin", null=True)
 
-    class Meta:
-        verbose_name = "randonnée"
-        verbose_name_plural = "randonnées"
-
     @property
     def length(self):
         length_m = self.path.transform(3035, clone=True).length  # change coordinates system
         length_km = round(length_m / 1000, 2)
         return length_km
+
+    def save(self, *args, **kwargs):
+        cat = Category.objects.get_or_create(tag="tour")[0]
+        self.category = cat
+        super().save(*args, **kwargs)
+
+
+    class Meta:
+        verbose_name = "randonnée"
+        verbose_name_plural = "randonnées"
+
 
 
 class Event():
