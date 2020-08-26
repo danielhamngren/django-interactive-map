@@ -5,7 +5,7 @@ from django.views.generic import ListView
 
 from django.contrib.gis.geos import Polygon
 
-from .models import Category, OpeningHoursSchema, OpeningHours, PointOfInterest
+from .models import Category, Commune, OpeningHoursSchema, OpeningHours, PointOfInterest
 from . import utils
 
 import datetime
@@ -100,3 +100,11 @@ def visible_poi(request):
             
     content = {'poi_list': poi_list}
     return render(request, 'tourism/index/_poi_loader.html', content)
+
+# == DEBUG COMMUNE ==
+class CommuneView(ListView):
+    template_name = 'tourism/commune.html'
+    context_object_name = 'commune_list'
+
+    def get_queryset(self):
+        return Commune.objects.all()
