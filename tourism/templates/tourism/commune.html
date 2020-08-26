@@ -71,6 +71,7 @@
         });
 
         {% for commune in commune_list %}
+            {% if commune.geom %}
             var tour_path = '{{ commune.geom.json|safe }}';
             var tour_path_geo = L.geoJSON(JSON.parse(tour_path), {
                 style: {
@@ -84,6 +85,7 @@
             });
             // tour_path_geo.on('click', onTourClick);
             tour_path_geo.addTo(map);
+            {% endif %}
         {% endfor %}
     }
 

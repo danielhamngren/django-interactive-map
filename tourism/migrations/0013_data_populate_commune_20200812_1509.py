@@ -12,16 +12,21 @@ def modify_from_data_tourism(apps, schema_editor):
     PointOfInterest = apps.get_model('tourism', 'PointOfInterest')
     Commune = apps.get_model('tourism', 'Commune')
 
-    shapes = {} # key: insee -> value: MultiPolygon
-    ## LOAD SHAPE OF COMMUNES
+    ## CREATE COMMUNES
     ddir = join(dirname(dirname(__file__)), 'data/tourism')
     with open(join(ddir, "communes.geojson")) as f:
         geodata = json.load(f)
 
     for feature in geodata['features']:
-        insee_geo = feature['properties']['CODE']
-        geom = GEOSGeometry(str(feature["geometry"]))
-        shapes[insee_geo] = geom
+        Commune.objects.get_or_create(
+            insee = feature["properties"]["INSEE"],
+            defaults={
+                "name": feature["properties"]["LIBELLE"],
+                "postal_code": feature["properties"]["CP"],
+                "in_argonne_pnr": True,
+                "geom": GEOSGeometry(str(feature["geometry"]))
+            }
+        )
     
     ## GET INFO FROM DATATOURISM
     flux_dir = "flux-7559-202008071000"
@@ -42,15 +47,14 @@ def modify_from_data_tourism(apps, schema_editor):
                 except (KeyError, TypeError, IndexError):
                     continue
 
-                if Commune.objects.filter(insee=insee).exists():
+                try:
                     c = Commune.objects.get(insee=insee)
-                else:
+                except Commune.DoesNotExist:
                     c = Commune()
                     c.name = location["hasAddressCity"][0]["rdfs:label"]['fr'][0]
                     c.postal_code = location["schema:postalCode"]
                     c.insee = insee
-                    c.in_argonne_pnr = True
-                    c.geom = shapes[insee]
+                    c.in_argonne_pnr = False
                     c.save()
 
                 poi.commune = c.id
