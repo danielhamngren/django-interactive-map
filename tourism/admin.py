@@ -5,7 +5,7 @@ from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.geos import Point
 from django.contrib.messages import constants as messages
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import path, reverse
 from django.utils.html import format_html
@@ -111,10 +111,24 @@ class PointOfInterestAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
 class GpxImportForm(forms.Form):
     gpx_file = forms.FileField()
 
-def handle_uploaded_file(f):
-    with open('test.txt', 'wb+') as destination:
-        for chunk in f.chunks():
-            destination.write(chunk)
+def form_handle_gpx_file(fn):
+    def wrapper(self, request, *args, **kwargs):
+        if request.method == "POST":
+            gpx_file = request.FILES["gpx_file"]
+            ds = DataSource(gpx_file.temporary_file_path())
+            tracks_layer = ds["tracks"]
+            if len(tracks_layer) != 1:
+                self.message_user(request, "Le fichier GPX contient trop de traces.", level=messages.ERROR)
+                self.message_user(request, "Fichier GPX contenant trop de 'tracks'", level=messages.DEBUG)
+                return redirect("..")
+            trk = tracks_layer[0]
+            return fn(self, request, trk, *args, **kwargs)
+
+        # Render the template to upload a GPX file
+        form = GpxImportForm()
+        payload = {"form": form}
+        return render(request, "admin/tourism/tour/gpx_upload.html", payload)
+    return wrapper
 
 @admin.register(Tour)
 class TourAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
@@ -124,72 +138,39 @@ class TourAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
     def get_urls(self):
         urls = super(GeoArgonne, self).get_urls()
         my_urls = [
-            path('<object_id>/import_gpx/', self.admin_site.admin_view(self.import_gpx), name='tourism_tour_update_from_gpx'),
+            path('<object_id>/import_gpx/', self.admin_site.admin_view(self.update_from_gpx), name='tourism_tour_update_from_gpx'),
             path('import_gpx/', self.admin_site.admin_view(self.add_from_gpx), name='tourism_tour_add_from_gpx')
         ]
         return my_urls + urls
     
-    def add_from_gpx(self, request):
-        if request.method == "POST":
-            gpx_file = request.FILES["gpx_file"]
-
-            tour = Tour()
-            ds = DataSource(gpx_file.temporary_file_path())
-            tracks_layer = ds["tracks"]
-            if len(tracks_layer) != 1:
-                self.message_user(request, "Le fichier GPX semble corrompu.", level=messages.ERROR)
-                self.message_user(request, "Fichier GPX contenant trop de 'tracks'", level=messages.DEBUG)
-                return redirect("..")
-            layer = tracks_layer[0]
-            tour.path = layer.geom.geos
-            tour.location = Point(tour.path[0][0])
-            try:
-                tour.commune = Commune.objects.get(geom__contains = tour.location)
-            except Commune.DoesNotExist:
-                self.message_user(request, "La commune ne semble pas faire partie de l'Argonne.", level=messages.ERROR)
-                return redirect("..")
-            gpx = gpxpy.parse(open(gpx_file.temporary_file_path(), 'r'))
-            if desc := gpx.description:
-                tour.description = desc.strip()
-            if name := gpx.name:
-                tour.name = name.strip()
-            tour.save()
-
-            self.message_user(request, "Votre fichier GPX a été importé avec succès.")
-        form = GpxImportForm()
-        payload = {"form": form}
-        return render(request, "admin/tourism/tour/gpx_upload.html", payload)
-    
-    def import_gpx(self, request, object_id):
-        # GPX file has been uploaded
-        if request.method == "POST":
-            gpx_file = request.FILES["gpx_file"]
-
-            # update tour
-            tour = Tour.objects.get(pk=object_id)
-            # handle_uploaded_file(gpx_file)
-            ds = DataSource(gpx_file.temporary_file_path())
-            tracks_layer = ds["tracks"]
-            if len(tracks_layer) != 1:
-                self.message_user(request, "Le fichier GPX semble corrompu.", level=messages.ERROR)
-                self.message_user(request, "Fichier GPX contenant trop de 'tracks'", level=messages.DEBUG)
-                return redirect("..")
-            
-            layer = tracks_layer[0]
-            tour.path = layer.geom.geos
-            tour.location = Point(tour.path[0][0])
-            tour.save()
-            
-            self.message_user(request, "Votre fichier GPX a été importé avec succès")
-                
-            # return redirect("admin:tourism_tour_change_list")
+    @form_handle_gpx_file
+    def add_from_gpx(self, request, trk):
+        tour = Tour()
+        tour.path = trk.geom.geos
+        tour.location = Point(tour.path[0][0])
+        try:
+            tour.commune = Commune.objects.get(geom__contains = tour.location)
+        except Commune.DoesNotExist:
+            self.message_user(request, "Aucune commune trouvée. Le parcours ne semble pas faire partie de l'Argonne.", level=messages.ERROR)
             return redirect("..")
-            # return HttpResponse("Hello!" + str(type(layer.geom)))
+        
+        # Retrieve metadata info (name & desc)
+        gpx = gpxpy.parse(open(request.FILES["gpx_file"].temporary_file_path(), 'r'))
+        if desc := gpx.description:
+            tour.description = desc.strip()
+        if name := gpx.name:
+            tour.name = name.strip()
+        tour.save()
 
-        # Render the template to upload a GPX file
-        form = GpxImportForm()
-        payload = {"form": form}
-        return render(request, "admin/tourism/tour/gpx_upload.html", payload)
-        # context = dict(self.admin_site.each_context(request))
-        # return TemplateResponse(request, "admin/tourism/tour/sometemplate.html", context)
-        # return HttpResponse("Error Hello!" + str(object_id))
+        self.message_user(request, "Votre fichier GPX a été importé avec succès.")
+        return redirect("admin:tourism_tour_change", tour.pk)
+
+    @form_handle_gpx_file
+    def update_from_gpx(self, request, trk, object_id):
+        tour = get_object_or_404(Tour, pk=object_id)
+        tour.path = trk.geom.geos
+        tour.location = Point(tour.path[0][0])
+        tour.save()
+        
+        self.message_user(request, "Votre fichier GPX a été importé avec succès")
+        return redirect("..")
