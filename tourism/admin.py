@@ -11,6 +11,7 @@ from django.urls import path, reverse
 from django.utils.html import format_html
 from django.utils.translation import ngettext
 
+import decimal
 import nested_admin
 import gpxpy
 from .models import Category, Commune, MainRepresentation, OpeningHours, OpeningHoursSchema, PointOfInterest, Tour
@@ -107,28 +108,69 @@ class PointOfInterestAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
 
     inlines = [MainRepresentationInline, OpeningSchemaInline]
 
-
+# == Tour == 
 class GpxImportForm(forms.Form):
     gpx_file = forms.FileField()
+    update_data = forms.BooleanField(
+        required=True,
+        label="Mis à jour des données",
+        help_text="Si cette case est cochée, les informations (description, distance, durée, dénivelé, ...) \
+            seront mises à jour selon les données fournies par le fichier GPX.",
+        initial=True
+    )
 
 def form_handle_gpx_file(fn):
     def wrapper(self, request, *args, **kwargs):
         if request.method == "POST":
-            gpx_file = request.FILES["gpx_file"]
-            ds = DataSource(gpx_file.temporary_file_path())
-            tracks_layer = ds["tracks"]
-            if len(tracks_layer) != 1:
-                self.message_user(request, "Le fichier GPX contient trop de traces.", level=messages.ERROR)
-                self.message_user(request, "Fichier GPX contenant trop de 'tracks'", level=messages.DEBUG)
-                return redirect("..")
-            trk = tracks_layer[0]
-            return fn(self, request, trk, *args, **kwargs)
+            form = GpxImportForm(request.POST, request.FILES)
+            if form.is_valid():
+                gpx_file = request.FILES["gpx_file"]
+                gpx_path = gpx_file.temporary_file_path()
+                ds = DataSource(gpx_path)
+                tracks_layer = ds["tracks"]
+                if len(tracks_layer) != 1:
+                    self.message_user(request, "Le fichier GPX contient trop de traces.", level=messages.ERROR)
+                    self.message_user(request, "Fichier GPX contenant trop de 'tracks'.", level=messages.DEBUG)
+                    return redirect("..")
+                trk = tracks_layer[0]
+
+                update_data = form.cleaned_data['update_data']
+                data = {"update_data": update_data, "trk": trk, "gpx_path": gpx_path}
+                return fn(self, request, data, *args, **kwargs)
 
         # Render the template to upload a GPX file
         form = GpxImportForm()
         payload = {"form": form}
         return render(request, "admin/tourism/tour/gpx_upload.html", payload)
     return wrapper
+
+def update_tour_data_from_gpx(tour, gpx_path, update_name=False):
+    gpx = gpxpy.parse(open(gpx_path, 'r'))
+    # Name
+    if update_name and (name := gpx.name):
+        tour.name = name.strip()
+    # Description
+    if desc := gpx.description:
+        tour.description = desc.strip()
+    # Distance
+    tour.distance = tour.compute_length()
+    # Time
+    if duration := gpx.get_duration(): # in seconds
+        tour.time = duration // 60
+    # Elevation extremes
+    elevation_ext = gpx.get_elevation_extremes()
+    if ele_min := elevation_ext.minimum:
+        tour.elevation_min = ele_min
+    if ele_max := elevation_ext.maximum:
+        tour.elevation_max = ele_max
+    # Cumulation elevation
+    gpx.simplify()
+    uphill_downhill = gpx.get_uphill_downhill()
+    if uphill := uphill_downhill.uphill:
+        tour.uphill = uphill
+    if downhill := uphill_downhill.downhill:
+        tour.downhill = downhill
+
 
 @admin.register(Tour)
 class TourAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
@@ -144,10 +186,11 @@ class TourAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
         return my_urls + urls
     
     @form_handle_gpx_file
-    def add_from_gpx(self, request, trk):
+    def add_from_gpx(self, request, response):
         tour = Tour()
-        tour.path = trk.geom.geos
+        tour.path = response["trk"].geom.geos
         tour.location = Point(tour.path[0][0])
+        tour.is_closed = tour.get_is_closed()
         try:
             tour.commune = Commune.objects.get(geom__contains = tour.location)
         except Commune.DoesNotExist:
@@ -155,21 +198,22 @@ class TourAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
             return redirect("..")
         
         # Retrieve metadata info (name & desc)
-        gpx = gpxpy.parse(open(request.FILES["gpx_file"].temporary_file_path(), 'r'))
-        if desc := gpx.description:
-            tour.description = desc.strip()
-        if name := gpx.name:
-            tour.name = name.strip()
+        if response["update_data"]:
+            update_tour_data_from_gpx(tour, response["gpx_path"], update_name=True)
         tour.save()
 
         self.message_user(request, "Votre fichier GPX a été importé avec succès.")
         return redirect("admin:tourism_tour_change", tour.pk)
 
     @form_handle_gpx_file
-    def update_from_gpx(self, request, trk, object_id):
+    def update_from_gpx(self, request, response, object_id):
         tour = get_object_or_404(Tour, pk=object_id)
-        tour.path = trk.geom.geos
+        tour.path = response["trk"].geom.geos
         tour.location = Point(tour.path[0][0])
+        tour.is_closed = tour.get_is_closed()
+
+        if response["update_data"]:
+            update_tour_data_from_gpx(tour, response["gpx_path"])
         tour.save()
         
         self.message_user(request, "Votre fichier GPX a été importé avec succès")

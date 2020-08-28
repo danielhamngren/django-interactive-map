@@ -1,3 +1,5 @@
+{% load tour_tags %}
+
 {% comment %} <div id='site-description'><h1>Hello world from detail.html</h1></div> {% endcomment %}
 <h1 class="poi-name"> {{ poi.name |upper }} </h1>
 
@@ -21,7 +23,10 @@
 {% endif %}
 
 {% if poi.tour %}
-<span class="tag tag-brown"> {{ poi.tour.length }} km </span>
+<span class="tag tag-brown"> {{ poi.tour.distance }} km</span>
+    {% if poi.tour.time %}
+    <span class="tag tag-blue"> {{ poi.tour.time|to_hours }} </span>
+    {% endif %}
 {% endif %}
 
 <div class="description">

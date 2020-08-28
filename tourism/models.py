@@ -1,6 +1,8 @@
 from django.contrib.gis.db import models
+from django.contrib.gis.geos import GEOSGeometry
 
 import datetime
+from decimal import Decimal
 # from django.utils.translation import gettext_lazy as _
 
 class Category(models.Model):
@@ -74,17 +76,38 @@ class Place():
     pass
 
 class Tour(PointOfInterest):
-    path = models.MultiLineStringField("chemin", null=True)
+    path = models.MultiLineStringField("parcours", null=True)
+    distance = models.DecimalField("distance", max_digits=6, decimal_places=2, null=True) # km
+    time = models.PositiveIntegerField("durée", null=True, blank=True) # min
+    uphill = models.PositiveIntegerField("dénivelé positif", null=True, blank=True) # m
+    downhill = models.PositiveIntegerField("dénivelé négatif", null=True, blank=True) # m
+    elevation_min = models.PositiveIntegerField("altitude maximale", null=True, blank=True) # m
+    elevation_max = models.PositiveIntegerField("altitude minimale", null=True, blank=True) # m
+    is_closed = models.BooleanField("est une boucle", default=True)
 
-    @property
-    def length(self):
-        length_m = self.path.transform(3035, clone=True).length  # change coordinates system
-        length_km = round(length_m / 1000, 2)
-        return length_km
+    def compute_length(self):
+        if self.path:
+            length_m = self.path.transform(3035, clone=True).length  # change coordinates system
+            length_km = round(length_m / 1000, 2)
+            return Decimal(length_km)
+
+    def get_is_closed(self, thresh=75):
+        if self.path:
+            if self.path.closed:
+                return True
+            else:
+                p_start = GEOSGeometry("SRID=4326;POINT({} {})".format(*self.path[0][0]))
+                p_end = GEOSGeometry("SRID=4326;POINT({} {})".format(*self.path[-1][-1]))
+                p_start.transform(3035)
+                p_end.transform(3035)
+                return p_start.distance(p_end) <= thresh
+        
 
     def save(self, *args, **kwargs):
         cat = Category.objects.get_or_create(tag="tour")[0]
         self.category = cat
+        if not self.distance and self.path:
+            self.distance = self.compute_length()
         super().save(*args, **kwargs)
 
 
