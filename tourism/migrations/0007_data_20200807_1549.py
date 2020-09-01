@@ -13,14 +13,14 @@ def modify_from_data_tourism(apps, schema_editor):
     Category = apps.get_model('tourism', 'Category')
 
     ### create categories
-    natural_site = Category(name="Sites naturels remarquables", tag="natural-site", icon="natural-site")
-    cultural_site = Category(name="Sites architecturaux remarquables", tag="cultural-site", icon="cultural-site")
-    city = Category(name="Villages", tag="city", icon="grey")
-    tour = Category(name="Parcours de randonnées", tag="tour", icon="tour")
-    tourism_info = Category(name="Accueil touristique", tag="tourism-info", icon="blue")
-    food = Category(name="Restauration", tag="food-establishment", icon="glamour")
-    accommodation = Category(name="Hébergements", tag="accommodation", icon="orange")
-    event = Category(name="Évènements", tag="event", icon="blurple")
+    event = Category(name="Évènements", tag="event", icon="koamaru", order=2)
+    tourism_info = Category(name="Accueil touristique", tag="tourism-info", icon="blue", order=4)
+    natural_site = Category(name="Sites naturels remarquables", tag="natural-site", icon="natural-site", order=6)
+    city = Category(name="Villages", tag="city", icon="orange", order=8)
+    cultural_site = Category(name="Sites architecturaux remarquables", tag="cultural-site", icon="default", order=10)
+    accommodation = Category(name="Hébergements", tag="accommodation", icon="glamour", order=12)
+    food = Category(name="Restauration", tag="food-establishment", icon="purple", order=14)
+    tour = Category(name="Parcours de randonnées", tag="tour", icon="brown", order=16)
     
     natural_site.save()
     cultural_site.save()

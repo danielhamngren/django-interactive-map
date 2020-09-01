@@ -11,6 +11,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name='pointofinterest',
+            name='city',
+            field=models.CharField(max_length=50, verbose_name='commune', default='pas de commune'),
+            preserve_default=True,
+        ),
         migrations.RemoveField(
             model_name='pointofinterest',
             name='city',

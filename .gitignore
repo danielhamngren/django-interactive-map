@@ -1,7 +1,6 @@
 argonnepnr/.env
 tourism/data/tourism/flux-*
 tourism/data/tourism/gpx
-Procfile
 
 # Created by https://www.toptal.com/developers/gitignore/api/code,django
 # Edit at https://www.toptal.com/developers/gitignore?templates=code,django

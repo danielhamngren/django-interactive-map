@@ -19,8 +19,8 @@ class Category(models.Model):
         return f"{self.name}"
 
 def get_default_category():
-    cat = Category.objects.get_or_create(tag="default")[0]
-    cat.icon = "default"
+    cat, created = Category.objects.get_or_create(tag="default", defaults={'order': 100})
+    cat.icon = "grey"
     if not cat.name:
         cat.name = "(pas de catégorie)"
     cat.save()
@@ -104,7 +104,7 @@ class Tour(PointOfInterest):
         
 
     def save(self, *args, **kwargs):
-        cat = Category.objects.get_or_create(tag="tour")[0]
+        cat, created = Category.objects.get_or_create(tag="tour", defaults={'order': 100})
         self.category = cat
         if not self.distance and self.path:
             self.distance = self.compute_length()
