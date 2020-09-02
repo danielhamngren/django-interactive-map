@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path('map/', include('tourism.urls')),
+    path('', include('tourism.urls')),
     path('admin/', admin.site.urls),
     path('_nested_admin/', include('nested_admin.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
