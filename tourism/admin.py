@@ -27,7 +27,7 @@ class OpeningHoursInline(nested_admin.NestedTabularInline):
 class OpeningSchemaInline(nested_admin.NestedTabularInline):
     model = OpeningHoursSchema
     inlines = [OpeningHoursInline]
-    extra = 1
+    extra = 0
 
 class MainRepresentationInline(nested_admin.NestedTabularInline):
     model = MainRepresentation
@@ -52,7 +52,8 @@ class CommuneAdmin(GeoArgonne):
 
 @admin.register(PointOfInterest)
 class PointOfInterestAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
-    list_display = ('name_link', 'commune', 'is_tour')
+    ## List
+    list_display = ('name_link', 'commune', 'owner', 'is_tour')
     list_display_links = None
 
     def name_link(self, poi):
@@ -74,6 +75,8 @@ class PointOfInterestAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
     is_tour.short_description = "Randonnée"
     is_tour.boolean = True
 
+    actions = ['make_tour']
+
     def make_tour(self, request, queryset):
         nb_updated = 0
         for poi in queryset:
@@ -94,17 +97,19 @@ class PointOfInterestAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
         ) % nb_updated, messages.SUCCESS)
     make_tour.short_description = "Convertir en randonnée(s)."
     
-    actions = ['make_tour']
     search_fields = ['name']
     list_filter = ['category', 'commune']
 
+    ## CREATE & UPDATE
     fields = [
         'name',
         'description',
         'category',
         'location',
         ('street_address', 'commune'),
-        ('email', 'phone', 'website')]
+        ('email', 'phone', 'website'),
+        'owner'
+    ]
 
     inlines = [MainRepresentationInline, OpeningSchemaInline]
 

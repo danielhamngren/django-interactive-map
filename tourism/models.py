@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 
@@ -44,6 +45,12 @@ class Commune(models.Model):
 # == POIs ==
 class PointOfInterest(models.Model):
     name = models.CharField("nom", max_length=100)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True, blank=True,
+        on_delete=models.SET_NULL
+    )
+
     location = models.PointField("localication")
     street_address = models.CharField("adresse", max_length=100, blank=True)
     commune = models.ForeignKey(

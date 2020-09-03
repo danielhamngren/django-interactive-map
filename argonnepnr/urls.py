@@ -18,8 +18,11 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from tourism.admin_contrib import user_admin_site
+
 urlpatterns = [
     path('', include('tourism.urls')),
     path('admin/', admin.site.urls),
+    path('contrib/', user_admin_site.urls),
     path('_nested_admin/', include('nested_admin.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
