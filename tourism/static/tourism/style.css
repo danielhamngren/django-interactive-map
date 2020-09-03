@@ -81,6 +81,24 @@ h1, h2, h3, h4, h5 {
 .leaflet-interactive.argonne-geojson {
     cursor: grab;
 }
+
+/* ----- MARKERS ----- */
+.marker-shape{
+    fill: #d54363;
+    fill-opacity: 1;
+    stroke: #ffffff;
+    stroke-opacity: 1;
+}
+
+.marker-inner{
+	opacity: 0.24800002;
+	fill: #000000;
+}
+
+.leaflet-marker-icon, .leaflet-marker-icon  svg{
+    transition: 0.25s;
+}
+
 /* ----- MAIN SIDEBAR (RESULTS) ----- */
 
 #loading-img {
@@ -255,9 +273,6 @@ h1, h2, h3, h4, h5 {
 	text-decoration: none;
 	font-size: 29px;
 	color: black;
-}
-.leaflet-marker-icon {
-    transition: 0.25s;
 }
 
 #poi-sidebar .main-illustration{

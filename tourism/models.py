@@ -9,8 +9,10 @@ from decimal import Decimal
 class Category(models.Model):
     name = models.CharField(max_length=150)
     tag = models.CharField(max_length=100, unique=True)
-    icon = models.CharField(max_length=100)
     order = models.IntegerField("ordre")
+
+    light_color = models.CharField(max_length=7, default="#d54363")
+    dark_color = models.CharField(max_length=7, default="#a1334b")
 
     class Meta:
         verbose_name = "categorie"

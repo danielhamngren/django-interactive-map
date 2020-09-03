@@ -32,13 +32,41 @@ class OpeningSchemaInline(nested_admin.NestedTabularInline):
 class MainRepresentationInline(nested_admin.NestedTabularInline):
     model = MainRepresentation
 
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = '__all__'
+        widgets = {
+            'light_color': forms.widgets.TextInput(attrs={'type': 'color'}),
+            'dark_color': forms.widgets.TextInput(attrs={'type': 'color'})
+        }
+
 @admin.register(Category)
 class CategoryAdmin(GeoArgonne):
     # fields = ['name', 'tag']
-    list_display = ('name', 'order')
+    form = CategoryForm
+    # filter_horizontal = ('questions',)
+    list_display = ('name', 'order', 'icon')
+
+    def icon(self, cat):
+        return format_html(
+            f"""
+            <span style=
+            "position: relative;display:block;width: 24px;height: 24px;
+            background-color:{cat.light_color};border: 2px solid white;border-radius: 24px 24px 0;
+            transform: rotate(45deg);">
+                <span style=
+                "display: block;width: 12px;height: 12px;
+                position: absolute;top: 6px;right: 6px;
+                background-color:{cat.dark_color};border-radius: 12px;"></span>
+            </span>"""
+        )
+    icon.short_description = "icône"
+
     ordering = ('order', )
     list_editable = ('order', )
-    exclude = ('tag', 'order')
+    exclude = ('order',)
 
 @admin.register(Commune)
 class CommuneAdmin(GeoArgonne):
