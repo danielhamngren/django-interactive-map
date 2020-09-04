@@ -1,4 +1,6 @@
 {% load l10n %}
+{% load openinghours_tags %}
+
 {% if error %}
 <p class="tag"> {{ error }}</p>
 {% else %}
@@ -29,6 +31,10 @@
             <h2 class="title"> {{ poi.name }}</h2>
             <div class="subtitle">
                 <span class="city">{{ poi.commune.name }}</span>
+                {% comment %} <span>
+                    {% if poi.open %} Ouvert {% else %} Fermé {% endif %}
+                    {{ poi.open }}
+                </span> {% endcomment %}
             </div>
             <p>{{ poi.description }}</p>
             <div class="rect"></div>
@@ -41,14 +47,20 @@
 <script>
 {% localize off %}
     var markersLoadedNew = Object(); // key: id -> value: leaflet_id
+    var icon;
     // Add all new markers
     {% for poi in poi_list %}
         var poi_id = "{{ poi.id }}";
         if (markersLoaded[poi_id] == null) { // new marker to display
             var lon = "{{ poi.location.x }}";
             var lat = "{{ poi.location.y }}";
+            {% if poi.open %}
+                icon = getIcon("{{ poi.category.tag }}", "{{ poi.category.light_color }}", "{{ poi.category.dark_color }}");
+            {% else %}
+                icon = getSmallIcon("{{ poi.category.tag }}", "{{ poi.category.dark_color }}");
+            {% endif %}
             var marker = L.marker([lat, lon], {
-                icon: getIcon("{{ poi.category.tag }}", "{{ poi.category.light_color }}", "{{ poi.category.dark_color }}"),
+                icon: icon
             });
             marker.on('click', onMarkerClick);
             marker['data-id'] = poi_id;

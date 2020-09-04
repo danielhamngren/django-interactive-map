@@ -95,10 +95,14 @@ h1, h2, h3, h4, h5 {
 	fill: #000000;
 }
 
-.leaflet-marker-icon, .leaflet-marker-icon  svg{
+.custom-marker-icon, .custom-marker-icon  svg,
+.custom-marker-small-icon, .custom-marker-small-icon svg {
     transition: 0.25s;
 }
 
+.custom-marker-icon  svg {
+    transform-origin: bottom ;
+}
 /* ----- MAIN SIDEBAR (RESULTS) ----- */
 
 #loading-img {
@@ -107,11 +111,6 @@ h1, h2, h3, h4, h5 {
 
 #main-sidebar{
     z-index: 500;
-}
-
-#date-filter{
-    padding: 1em 1.5em 0 1.5em;
-    display: block;
 }
 
 #main-sidebar .card {
@@ -214,8 +213,21 @@ h1, h2, h3, h4, h5 {
 	transform: translateY(0);
 }
 
+/* ----- CALENDAR ----- */
+#date-filter {
+	padding: 1em 1.5em 1em 1.5em;
+	display: block;
+	background-color: lightgray;
+	position: sticky;
+	position: -webkit-sticky;
+	top: 0;
+	z-index: 510;
+}
 
-/* ----- FILDER SHORTCUTS ----- */
+#filter-shortcut #calendar-icon {
+    margin: .75em auto;
+}
+/* ----- FILTER SHORTCUTS ----- */
 
 #filter-shortcut {
 	flex: 0 0 55px;

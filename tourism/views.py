@@ -4,6 +4,9 @@ from django.shortcuts import get_object_or_404, render
 from django.views.generic import ListView
 
 from django.contrib.gis.geos import Polygon
+from django.contrib.gis.db import models
+from django.db.models import Value
+
 
 from .models import Category, Commune, OpeningHoursSchema, OpeningHours, PointOfInterest
 from . import utils
@@ -85,7 +88,11 @@ def visible_poi(request):
     ).date()
 
     if date_end < date_start:
-        return render(request, 'tourism/index/_poi_loader.html', {"error": f"La date de fin doit être supérieure à {date_start}."})
+        return render(
+            request,
+            'tourism/index/_poi_loader.html',
+            {"error": f"La date de fin doit être supérieure à {date_start}."}
+        )
 
     sw, ne = bounds["_southWest"], bounds["_northEast"]
     bbox = (sw["lng"], sw["lat"], ne["lng"], ne["lat"])
@@ -93,12 +100,22 @@ def visible_poi(request):
     poi_list = PointOfInterest.objects.filter(
         location__contained=geom,
         category__tag__in=categories,
-        # openinghoursschema__valid_from__lte = date_end,
-        # openinghoursschema__valid_through__gte = date_start,
-        # openinghoursschema__openinghours__weekday__in = utils.get_isoweekdays_btw_dates(date_start, date_end),
-    ).distinct()
-            
-    content = {'poi_list': poi_list}
+    )
+    poi_list_opened = poi_list.filter(
+        openinghoursschema__valid_from__lte = date_end,
+        openinghoursschema__valid_through__gte = date_start,
+        openinghoursschema__openinghours__weekday__in = utils.get_isoweekdays_btw_dates(date_start, date_end),
+    ).distinct().annotate(open=Value(True, models.BooleanField()))
+
+    poi_list_closed = poi_list.exclude(
+        openinghoursschema__valid_from__lte = date_end,
+        openinghoursschema__valid_through__gte = date_start,
+        openinghoursschema__openinghours__weekday__in = utils.get_isoweekdays_btw_dates(date_start, date_end),
+    ).distinct().annotate(open=Value(False, models.BooleanField()))
+
+    content = {
+        'poi_list': poi_list_opened.union(poi_list_closed).order_by('-open')
+    }
     return render(request, 'tourism/index/_poi_loader.html', content)
 
 # == DEBUG COMMUNE ==

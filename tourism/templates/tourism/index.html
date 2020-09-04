@@ -15,11 +15,11 @@
 {% block content %}
 <div id="filter-shortcut">
     <ul>
-        <li><img src={% static 'tourism/icons/calendar.png' %} draggable=false></li>
+        <li id="calendar-icon"><img src={% static 'tourism/icons/calendar.png' %} draggable=false></li>
     </ul>
-    <ul id="#layers-control" class="filters">
+    <ul id="layers-control" class="filters">
         {% for cat in category_list %}
-        <li id="#clicon-{{ cat.tag }}" class="tooltip" onclick="changeLayersState(this)" title="{{ cat.name }}">
+        <li id="clicon-{{ cat.tag }}" class="tooltip" onclick="changeLayersState(this)" title="{{ cat.name }}">
             {% with 'tourism/icons/'|add:cat.tag|add:'.png' as image_static %}
             <img src={% static image_static %} draggable=false>
             {% endwith %}
@@ -74,11 +74,13 @@
     var controlLayers; // leaflet Control.layers
     var categoriesSelected = Array();
     
+    var dateStart;
+    var dateEnd;
     // Define the default marker
     var icons = Array();
+    const iconScale = 1.25;
 
-    var svg_fmt = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="28">' +
-        '<g>' +
+    var iconFmt = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="28">' +
             '<path ' +
                 'class="marker-shape"' +
                 'd="M 4.3750672,19.757606 3.6250743,19.030336 A 11.3374,10.993899 0 0 1 0.75009976,11.636424 11.3374,10.993899 0 0 1 3.6250743,4.2425122 C 3.8750722,4.0000882 4.12507,3.6364542 4.3750672,3.3940302 a 11.549898,11.199959 0 0 1 15.2498648,0 l 0.749994,0.72727 A 11.3374,10.993899 0 0 1 23.2499,11.515212 11.3374,10.993899 0 0 1 20.374926,18.909124 L 19.624932,19.636394 12,27.151518 Z"' +
@@ -95,8 +97,17 @@
                 'cy="11.479015"' +
                 'rx="5.5932202"' +
                 'ry="5.2881355" />' +
-        '</g>' +
-    '</svg>'
+        '</svg>'
+
+    var iconSmallFmt= '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12">' +
+        '<circle ' +
+            'class="marker-small"' +
+            'style="opacity:1;fill:{0};fill-opacity:1;stroke:#ffffff;stroke-width:1.231;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"' +
+            'id="path833-3"' +
+            'cx="6"' + // = heigth / 2
+            'cy="6"' + // = heigth / 2
+            'r="5.3845" />' + // = (width - stroke-width) / 2
+        '</svg>'
 
     /* ===== UTILS ===== */
 
@@ -109,12 +120,25 @@
     }
 
     function getIcon(tag, color1, color2) {
-        console.log(color1)
         if (icons[tag] == null) {
             icons[tag] = L.divIcon({
-                className: 'my-div-icon',
+                className: 'custom-marker-icon',
+                iconSize: [24, 28],
                 iconAnchor: [12, 28],
-                html: svg_fmt.format(color1, color2)
+                html: iconFmt.format(color1, color2)
+            });
+        }
+        return icons[tag]
+    }
+
+    function getSmallIcon(tag, color) {
+        tag = "small-" + tag
+        if (icons[tag] == null) {
+            icons[tag] = L.divIcon({
+                className: 'custom-marker-small-icon',
+                iconSize: [10, 10],
+                iconAnchor: [5, 5],
+                html: iconSmallFmt.format(color)
             });
         }
         return icons[tag]
@@ -122,11 +146,7 @@
 
     function emphasizeMarker(marker) { 
         var my_icon = marker._icon;
-        my_icon.style.width = "30px";
-        my_icon.style.height = "35px";
-        my_icon.firstChild.style.scale = "1.25";
-        // my_icon.style.marginLeft = '-15px'
-        my_icon.style.marginTop = '-30px'
+        my_icon.firstChild.style.scale = iconScale;
         selectedMarker["z-index"] = my_icon.style.zIndex;
         my_icon.style.zIndex = 5000;
         selectedMarker["icon"] = my_icon;
@@ -148,11 +168,7 @@
     function resetSelectedMarker(){
         if (Object.entries(selectedMarker).length) {
             // Reset the previously selected icon
-            selectedMarker["icon"].style.width = "24px";
-            selectedMarker["icon"].style.height = "28px";
             selectedMarker["icon"].firstChild.style.scale = "1";
-            selectedMarker["icon"].style.marginLeft = "-12px";
-            selectedMarker["icon"].style.marginTop = "-28px";
             selectedMarker["icon"].style.zIndex = selectedMarker["z-index"];
 
             // de-emphasize Tour
@@ -172,6 +188,9 @@
     function loadMarkers() {
         // markersLayer.clearLayers();
         var bounds = map.getBounds();
+        dateStart = $("#date-filter #start").val() || undefined;
+        dateEnd = $("#date-filter #end").val() || undefined;
+        console.log(dateStart, dateEnd)
         // $("#loading-img").show();
         $.ajax({
             type: 'GET',
@@ -179,8 +198,8 @@
             data: {
                 "bounds": JSON.stringify(bounds),
                 "categories": JSON.stringify(categoriesSelected),
-                "date-from": $("#date-filter #start").val() || undefined,
-                "date-to": $("#date-filter #end").val() || undefined,
+                "date-from": dateStart,
+                "date-to": dateEnd,
             },
             success: function (response) {
                 // map.setView(position);
@@ -225,7 +244,7 @@
 
     function changeLayersState(iconCategory) {
         // console.log(iconCategory);
-        tag = iconCategory.id.slice(8); // remove '#clicon-" from #clicon-tag-name
+        tag = iconCategory.id.slice(7); // remove 'clicon-" from clicon-tag-name
         if (categoriesSelected.includes(tag)) {
             iconCategory.classList.remove("checked");
             // map.removeLayer(markersLayers[tag]);
