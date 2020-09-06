@@ -19,7 +19,7 @@
     </ul>
     <ul id="layers-control" class="filters">
         {% for cat in category_list %}
-        <li id="clicon-{{ cat.tag }}" class="tooltip" onclick="changeLayersState(this)" title="{{ cat.name }}">
+        <li id="clicon-{{ cat.tag }}" class="tooltip{% if cat.tag == 'event' %} checked{% endif %}" onclick="changeLayersState(this)" title="{{ cat.name }}">
             {% with 'tourism/icons/'|add:cat.tag|add:'.png' as image_static %}
             <img src={% static image_static %} draggable=false>
             {% endwith %}
@@ -43,7 +43,8 @@
     {% comment %} <img id="loading-img" src={% static 'tourism/loader.gif' %} draggable=false}> {% endcomment %}
     {% include "tourism/index/_date.html" %}  
     <div class="content">
-        <h1>Destination Argonne</h1>
+        <h1 id="results-title">Destination Argonne</h1>
+        <div class="results"></div>
     </div>
 </div>
 
@@ -70,9 +71,13 @@
     var mainLayer =  new L.LayerGroup();
     // var markersLayers = Object(); // store each layers: {tag : leaflet LayerGroup}
     var markersLoaded = Object(); // store each loaded markers: {poi_id : _leaflet_id}
-    var selectedMarker = Object(); 
+    var markersHidden = Array();
+    var markerSelected = Object();
     var controlLayers; // leaflet Control.layers
-    var categoriesSelected = Array();
+    var categoriesSelected = ["event"] //Array();
+
+    var mapBounds;
+    var numPage;
     
     var dateStart;
     var dateEnd;
@@ -147,9 +152,9 @@
     function emphasizeMarker(marker) { 
         var my_icon = marker._icon;
         my_icon.firstChild.style.scale = iconScale;
-        selectedMarker["z-index"] = my_icon.style.zIndex;
+        markerSelected["z-index"] = my_icon.style.zIndex;
         my_icon.style.zIndex = 5000;
-        selectedMarker["icon"] = my_icon;
+        markerSelected["icon"] = my_icon;
 
         // emphasize Tour
         if (marker['data-tour']) {
@@ -160,25 +165,25 @@
                 // dashArray: '5, 10',
                 opacity: 1,
             });
-            selectedMarker["tour"] = path;
+            markerSelected["tour"] = path;
         }
         
     }
 
     function resetSelectedMarker(){
-        if (Object.entries(selectedMarker).length) {
+        if (Object.entries(markerSelected).length) {
             // Reset the previously selected icon
-            selectedMarker["icon"].firstChild.style.scale = "1";
-            selectedMarker["icon"].style.zIndex = selectedMarker["z-index"];
+            markerSelected["icon"].firstChild.style.scale = "1";
+            markerSelected["icon"].style.zIndex = markerSelected["z-index"];
 
             // de-emphasize Tour
-            if (selectedMarker["tour"]) {
-                selectedMarker["tour"].setStyle({
+            if (markerSelected["tour"]) {
+                markerSelected["tour"].setStyle({
                     weight: 3,
                     color: "#a05a2c",
                     opacity: 0.7,
                 });
-                selectedMarker["tour"] = undefined;
+                markerSelected["tour"] = undefined;
             }
         }
     }
@@ -186,21 +191,25 @@
     /* ===== REQUESTS ===== */
 
     function loadMarkers() {
+        console.log("Load Markers")
         // markersLayer.clearLayers();
-        var bounds = map.getBounds();
         dateStart = $("#date-filter #start").val() || undefined;
         dateEnd = $("#date-filter #end").val() || undefined;
-        console.log(dateStart, dateEnd)
+        //mapBounds = map.getBounds();
+        data = {
+                // "bounds": JSON.stringify(mapBounds),
+                "categories": JSON.stringify(categoriesSelected),
+                "date-from": dateStart,
+                "date-to": dateEnd,
+            }
+        /*if (boundsChange) {
+            data["boundsOld"] = JSON.stringify(mapBoundsPrev);
+        }*/
         // $("#loading-img").show();
         $.ajax({
             type: 'GET',
             url: "{% url 'tourism:poi_load' %}",
-            data: {
-                "bounds": JSON.stringify(bounds),
-                "categories": JSON.stringify(categoriesSelected),
-                "date-from": dateStart,
-                "date-to": dateEnd,
-            },
+            data: data,
             success: function (response) {
                 // map.setView(position);
                 // response;
@@ -217,7 +226,43 @@
         })
     }
 
-    function displayPoiDetails(poi_id){
+    function loadBestResults(newPage=false) {
+        if (newPage) {
+            numPage += 1
+        } else {
+            numPage = 0
+        }
+        var markersIds = Array();
+        mainLayer.eachLayer(function(marker) {
+            markersIds.push(parseInt(marker["data-id"]));
+        });
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'tourism:best_results_load' %}",
+            data: {
+                "ids": JSON.stringify(markersIds),
+                "page": numPage
+            },
+            success: function (response) {
+                if (numPage == 0) {
+                    $("#main-sidebar .results").html(response);
+                }
+                else {
+                    console.log("TETE")
+                    $("#main-sidebar .results").append(response);
+                }
+            },
+            complete: function() {
+                // $("#loading-img").hide();
+            },
+            error: function(response) {
+                console.log("Échec de la requête AJAX (loadBestResults)");
+                console.log(response);
+            }
+        })
+    }
+
+    function loadPoiDetails(poi_id){
         $.ajax({
             type: 'GET',
             url: "{% url 'tourism:poi_detail' %}",
@@ -232,7 +277,7 @@
                 showNav("#poi-sidebar")
             },
             error: function(response) {
-                console.log("Échec de la requête AJAX (GET POI details)");
+                console.log("Échec de la requête AJAX (loadPoiDetails)");
                 console.log(response);
             }
         })
@@ -270,14 +315,18 @@
     /* ----- Markers ----- */
 
     function onMarkerClick(e) {
+        // map.panTo(this.getLatLng());
+
         // 1. Emphasize the corresponding icon
         // var my_icon = $(this)[0]._icon;
         resetSelectedMarker();
-        emphasizeMarker($(this)[0]);
+        emphasizeMarker(this);
+
+        console.log(this._leaflet_id);
 
         // 2. Get details from the selected POI        
         var poi_id = $(this).attr('data-id');
-        displayPoiDetails(poi_id);
+        loadPoiDetails(poi_id);
     }
 
     function onTourClick(e) {
@@ -289,16 +338,44 @@
 
     function onResultHover(poi_id) {
         var my_marker = mainLayer.getLayer(markersLoaded[poi_id])
-        emphasizeMarker(my_marker);
+        if (my_marker)
+            emphasizeMarker(my_marker);
     }
 
     function onResultClick(elmt, poi_id) {
         $(elmt).attr("onmouseleave", "");
         var my_icon = mainLayer.getLayer(markersLoaded[poi_id])._icon;
-        displayPoiDetails(poi_id);
+        loadPoiDetails(poi_id);
         setTimeout(function(){
             $(elmt).attr("onmouseleave", "resetSelectedMarker()");
         }, 700);
+    }
+
+    /* ===== Hide unseen markers ===== */
+    function showMarkersInBounds() {
+        mapBounds = map.getBounds();
+        // Hide non-visible markers
+        mainLayer.eachLayer(function (marker) {
+            if (! mapBounds.contains(marker.getLatLng())) { // not in bounds anymore
+                markersHidden.push(marker);
+                mainLayer.removeLayer(marker);
+            }
+        });
+        // Show visible markers
+        var i = markersHidden.length
+        while (i--) {
+            marker = markersHidden[i];
+            if (mapBounds.contains(marker.getLatLng())) {
+                mainLayer.addLayer(marker);
+                markersHidden.splice(i, 1)
+            }
+        }
+
+        var numResults = Object.size(mainLayer._layers);
+        if (numResults > 1)
+            $("#results-title").html(numResults + " résultats");
+        else
+            $("#results-title").html(numResults + " résultat");
     }
 
     /* ===== MAP INIT ===== */
@@ -306,13 +383,13 @@
     function map_init(mmap, options) {
         map = mmap; // store the object in a variable
         controlLayers = map.layerscontrol;
+        mapBounds = map.getBounds();
 
         // Display initial markers
         // createLayersByCategory();
         // $("#loading-img").hide()
         map.addLayer(mainLayer);
-        loadMarkers();
-			
+        loadMarkers();			
 		/*map.on('drag', function(e) {
             markersLayer.clearLayers();
 		});*/
@@ -324,11 +401,15 @@
 			
 		map.on('dragend', function(e) {
 		    // markersLayer.clearLayers();
-		    loadMarkers();
+		    // loadMarkers(true);
+            showMarkersInBounds();
+            loadBestResults();
 		});
 
         map.on('zoomend', function() {
-            loadMarkers();
+            // loadMarkers(true);
+            showMarkersInBounds();
+            loadBestResults();
         });
 
         map.on('click', function() {

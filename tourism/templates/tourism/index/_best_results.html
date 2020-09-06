@@ -1,0 +1,37 @@
+{% load openinghours_tags %}
+
+{% if debug %} <span> {{ debug }} </span> {% endif %}
+{% for poi in poi_list %}
+    {% comment %} {{ poi | is_open:"2020"}} {% endcomment %}
+    <article class="card" onmouseover="onResultHover({{poi.id}})" onmouseleave="resetSelectedMarker()" onclick="onResultClick(this, {{poi.id}})">
+        <header class="thumb">
+        {% if poi.mainrepresentation %}
+            {% comment %} <header class="thumb" style="background-image: url('{{ poi.mainrepresentation.picture.url }}')"></header> {% endcomment %}
+            <img src="{{ poi.mainrepresentation.picture.url }}" alt="{{ poi.mainrepresentation.picture.title }}" draggable="false">
+        {% else %}
+            
+        {% endif %}
+        </header>
+        <div class="body">
+            <h2 class="title"> {{ poi.name }}</h2>
+            <div class="subtitle">
+                <span class="city">{{ poi.commune.name }}</span>
+                {% comment %} <span>
+                    {% if poi.open %} Ouvert {% else %} Fermé {% endif %}
+                    {{ poi.open }}
+                </span> {% endcomment %}
+            </div>
+            <p>{{ poi.description }}</p>
+            <div class="rect"></div>
+            <div class="rect_white"></div>
+        </div>
+    </article>
+{% endfor %}
+
+<script>
+    if ("{{ poi_list.count }}" < 10) {
+        $("#show-more").hide();
+    } else {
+        $("#show-more").show();
+    }
+</script>

@@ -1,12 +1,11 @@
 {% load l10n %}
-{% load openinghours_tags %}
 
 {% if error %}
 <p class="tag"> {{ error }}</p>
 {% else %}
 
 {% comment %} {% if poi_list %} {% endcomment %}
-<h1> {{ poi_list.count }} Résultat{{ poi_list.count|pluralize}} </h1>
+<h1 id="results-title">{{ poi_list.count }} Résultat{{ poi_list.count|pluralize}} </h1>
 {% comment %} {% endif %} {% endcomment %}
 {% comment %} {% include "tourism/index/_date.html" %}   {% endcomment %}
 
@@ -14,38 +13,15 @@
     {% comment %} <h4> {{ datee }} </h4> {% endcomment %}
 </div>
 
-
-
 <div class="results">
-{% for poi in poi_list %}
-    <article class="card" onmouseover="onResultHover({{poi.id}})" onmouseleave="resetSelectedMarker()" onclick="onResultClick(this, {{poi.id}})">
-        <header class="thumb">
-        {% if poi.mainrepresentation %}
-            {% comment %} <header class="thumb" style="background-image: url('{{ poi.mainrepresentation.picture.url }}')"></header> {% endcomment %}
-            <img src="{{ poi.mainrepresentation.picture.url }}" alt="{{ poi.mainrepresentation.picture.title }}" draggable="false">
-        {% else %}
-            
-        {% endif %}
-        </header>
-        <div class="body">
-            <h2 class="title"> {{ poi.name }}</h2>
-            <div class="subtitle">
-                <span class="city">{{ poi.commune.name }}</span>
-                {% comment %} <span>
-                    {% if poi.open %} Ouvert {% else %} Fermé {% endif %}
-                    {{ poi.open }}
-                </span> {% endcomment %}
-            </div>
-            <p>{{ poi.description }}</p>
-            <div class="rect"></div>
-            <div class="rect_white"></div>
-        </div>
-    </article>
-{% endfor %}
+    {% comment %} {% include "tourism/index/_best_results.html" %} {% endcomment %}
 </div>
+<div id="show-more" class="show-more" onclick="loadBestResults(true)"></div>
+
 
 <script>
 {% localize off %}
+
     var markersLoadedNew = Object(); // key: id -> value: leaflet_id
     var icon;
     // Add all new markers
@@ -113,6 +89,8 @@
         });
     });*/
     markersLoaded = markersLoadedNew;
+    showMarkersInBounds();
+    loadBestResults();
 
 {% endlocalize %}
 </script>

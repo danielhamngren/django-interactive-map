@@ -76,8 +76,9 @@ def detail(request):
 @ajax_get_view
 def visible_poi(request):
     # Retrieve data
-    bounds = json.loads(request.GET.get("bounds", None))
     categories = json.loads(request.GET.get("categories", None))
+
+    # Retrieve dates
     date_start = datetime.datetime.strptime(
         request.GET.get("date-from", "2000-1-1"),
         '%Y-%m-%d'
@@ -93,12 +94,16 @@ def visible_poi(request):
             'tourism/index/_poi_loader.html',
             {"error": f"La date de fin doit être supérieure à {date_start}."}
         )
+    # Retrieve bounds
+    # bounds = request.GET.get("bounds", None)
+    # bounds_old = request.GET.get("boundsOld", None)  # not set if no move
+    # geom_new = utils.to_geom(bounds)  # current zone (after zoom/drag)
+    # geom_old = utils.to_geom(bounds_old)  # previous zone (bedore zoom/drag)
+    # geom = geom_new - geom_old # new POis are inside this geometry
 
-    sw, ne = bounds["_southWest"], bounds["_northEast"]
-    bbox = (sw["lng"], sw["lat"], ne["lng"], ne["lat"])
-    geom = Polygon.from_bbox(bbox)
+    # Query
     poi_list = PointOfInterest.objects.filter(
-        location__contained=geom,
+        # location__within=geom_new,
         category__tag__in=categories,
     )
     poi_list_opened = poi_list.filter(
@@ -114,9 +119,21 @@ def visible_poi(request):
     ).distinct().annotate(open=Value(False, models.BooleanField()))
 
     content = {
-        'poi_list': poi_list_opened.union(poi_list_closed).order_by('-open')
+        'poi_list': poi_list_opened.union(poi_list_closed).order_by('-open'),
     }
     return render(request, 'tourism/index/_poi_loader.html', content)
+
+@ajax_get_view
+def best_poi(request):
+    POI_BY_PAGE = 10
+    ids = json.loads(request.GET.get("ids", "[]"))
+    page = int(request.GET.get("page", 0))
+    best_results = PointOfInterest.objects.filter(pk__in = ids).order_by('name')[page*POI_BY_PAGE : (page+1)*POI_BY_PAGE]
+    content = {
+        'poi_list': best_results,
+        # 'debug': best_results.count()
+    }
+    return render(request, 'tourism/index/_best_results.html', content)
 
 # == DEBUG COMMUNE ==
 class CommuneView(ListView):
