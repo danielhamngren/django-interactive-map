@@ -81,13 +81,14 @@
         }
     });
 
-    /*Object.values(markersLayers).forEach((layerGroup) => {
-        layerGroup.eachLayer(function (layer) {
-            if (!(leafletIdToKeep.includes(layer._leaflet_id))) {
-                layerGroup.removeLayer(layer);
-            }
-        });
-    });*/
+    var i = markersHidden.length;
+    while (i--) {
+        marker = markersHidden[i];
+        if (!(leafletIdToKeep.includes(marker._leaflet_id))) {
+            markersHidden.splice(i, 1);
+        }
+    }
+
     markersLoaded = markersLoadedNew;
     showMarkersInBounds();
     loadBestResults();

@@ -191,7 +191,6 @@
     /* ===== REQUESTS ===== */
 
     function loadMarkers() {
-        console.log("Load Markers")
         // markersLayer.clearLayers();
         dateStart = $("#date-filter #start").val() || undefined;
         dateEnd = $("#date-filter #end").val() || undefined;
@@ -248,7 +247,6 @@
                     $("#main-sidebar .results").html(response);
                 }
                 else {
-                    console.log("TETE")
                     $("#main-sidebar .results").append(response);
                 }
             },
@@ -322,7 +320,7 @@
         resetSelectedMarker();
         emphasizeMarker(this);
 
-        console.log(this._leaflet_id);
+        // console.log(this._leaflet_id);
 
         // 2. Get details from the selected POI        
         var poi_id = $(this).attr('data-id');
@@ -362,12 +360,12 @@
             }
         });
         // Show visible markers
-        var i = markersHidden.length
+        var i = markersHidden.length;
         while (i--) {
             marker = markersHidden[i];
             if (mapBounds.contains(marker.getLatLng())) {
                 mainLayer.addLayer(marker);
-                markersHidden.splice(i, 1)
+                markersHidden.splice(i, 1);
             }
         }
 
