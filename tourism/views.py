@@ -5,7 +5,7 @@ from django.views.generic import ListView
 
 from django.contrib.gis.geos import Polygon
 from django.contrib.gis.db import models
-from django.db.models import Value
+from django.db.models import Value, When, Case, Exists, OuterRef
 
 
 from .models import Category, Commune, OpeningHoursSchema, OpeningHours, PointOfInterest
@@ -102,24 +102,19 @@ def visible_poi(request):
     # geom = geom_new - geom_old # new POis are inside this geometry
 
     # Query
+    valid_openingschemas = OpeningHoursSchema.objects.filter(
+        poi=OuterRef('pk'),
+        valid_from__lte=date_end,
+        valid_through__gte=date_start,
+        openinghours__weekday__in=utils.get_isoweekdays_btw_dates(date_start, date_end),
+    )
     poi_list = PointOfInterest.objects.filter(
         # location__within=geom_new,
         category__tag__in=categories,
-    )
-    poi_list_opened = poi_list.filter(
-        openinghoursschema__valid_from__lte = date_end,
-        openinghoursschema__valid_through__gte = date_start,
-        openinghoursschema__openinghours__weekday__in = utils.get_isoweekdays_btw_dates(date_start, date_end),
-    ).distinct().annotate(open=Value(True, models.BooleanField()))
-
-    poi_list_closed = poi_list.exclude(
-        openinghoursschema__valid_from__lte = date_end,
-        openinghoursschema__valid_through__gte = date_start,
-        openinghoursschema__openinghours__weekday__in = utils.get_isoweekdays_btw_dates(date_start, date_end),
-    ).distinct().annotate(open=Value(False, models.BooleanField()))
+    ).annotate(open=Exists(valid_openingschemas))
 
     content = {
-        'poi_list': poi_list_opened.union(poi_list_closed).order_by('-open'),
+        'poi_list': poi_list.order_by('-open'),
     }
     return render(request, 'tourism/index/_poi_loader.html', content)
 
