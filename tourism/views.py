@@ -77,6 +77,7 @@ def detail(request):
 def visible_poi(request):
     # Retrieve data
     categories = json.loads(request.GET.get("categories", None))
+    name = json.loads(request.GET.get("name", None))
 
     # Retrieve dates
     date_start = datetime.datetime.strptime(
@@ -112,6 +113,11 @@ def visible_poi(request):
         # location__within=geom_new,
         category__tag__in=categories,
     ).annotate(open=Exists(valid_openingschemas))
+
+    if name:
+        poi_by_commune_name = poi_list.filter(commune__name__icontains = name)
+        poi_by_name = poi_list.filter(name__icontains = name)
+        poi_list = poi_by_commune_name.union(poi_by_name)
 
     content = {
         'poi_list': poi_list.order_by('-open'),

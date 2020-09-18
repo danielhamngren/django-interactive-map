@@ -192,6 +192,7 @@
 
     function loadMarkers() {
         // markersLayer.clearLayers();
+        name = $("#name-searchbar").val() || undefined;
         dateStart = $("#date-filter #start").val() || undefined;
         dateEnd = $("#date-filter #end").val() || undefined;
         //mapBounds = map.getBounds();
@@ -200,6 +201,7 @@
                 "categories": JSON.stringify(categoriesSelected),
                 "date-from": dateStart,
                 "date-to": dateEnd,
+                "name": JSON.stringify(name),
             }
         /*if (boundsChange) {
             data["boundsOld"] = JSON.stringify(mapBoundsPrev);
@@ -309,6 +311,15 @@
         loadMarkers();
     }
 
+    function onFilterChange(){
+        loadMarkers();
+    }
+
+    function onInputKeyDown(keyEvent){
+        if (keyEvent.code == "Enter") {
+            loadMarkers();
+        }
+    }
 
     /* ----- Markers ----- */
 
