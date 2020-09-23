@@ -241,9 +241,10 @@
         } else {
             numPage = 0
         }
-        var markersIds = Array();
+        var markersIds = Object();
         mainLayer.eachLayer(function(marker) {
-            markersIds.push(parseInt(marker["data-id"]));
+            // markersIds.push(parseInt(marker["data-id"]));
+            markersIds[parseInt(marker["data-id"])] = parseInt(marker["data-opening-score"]);
         });
         $.ajax({
             type: 'GET',

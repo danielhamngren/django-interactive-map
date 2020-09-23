@@ -14,7 +14,7 @@ from django.utils.translation import ngettext
 import decimal
 import nested_admin
 import gpxpy
-from .models import Category, Commune, MainRepresentation, OpeningHours, OpeningHoursSchema, PointOfInterest, Tour
+from .models import Category, Commune, MainRepresentation, OpeningHours, OpeningPeriod, PointOfInterest, Tour
 
 class GeoArgonne(admin.OSMGeoAdmin):
     default_zoom = 10
@@ -24,8 +24,8 @@ class GeoArgonne(admin.OSMGeoAdmin):
 class OpeningHoursInline(nested_admin.NestedTabularInline):
     model = OpeningHours
 
-class OpeningSchemaInline(nested_admin.NestedTabularInline):
-    model = OpeningHoursSchema
+class OpeningPeriodInline(nested_admin.NestedTabularInline):
+    model = OpeningPeriod
     inlines = [OpeningHoursInline]
     extra = 0
 
@@ -130,18 +130,40 @@ class PointOfInterestAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
     list_filter = ['category', 'commune']
 
     ## CREATE & UPDATE
-    fields = [
-        'name',
-        'description',
-        'category',
-        'note_of_interest',
-        'location',
-        ('street_address', 'commune'),
-        ('email', 'phone', 'website'),
-        'owner'
-    ]
+    # fields = [
+    #     'name',
+    #     'description',
+    #     'category',
+    #     'note_of_interest',
+    #     'location',
+    #     ('street_address', 'commune'),
+    #     ('email', 'phone', 'website'),
+    #     'owner',
+    #     ('is_always_open'),
+    # ]
 
-    inlines = [MainRepresentationInline, OpeningSchemaInline]
+    fieldsets = (
+        (None, {
+            'fields': [
+                'name',
+                'description',
+                'category',
+                'note_of_interest',
+                'location',
+                ('street_address', 'commune'),
+                ('email', 'phone', 'website'),
+                'owner']
+        }),
+        ("Horaires d'ouverture", {
+            # 'classes': ('collapse',),
+            'fields': ('is_always_open',),
+        }),
+    )
+
+    inlines = [OpeningPeriodInline, MainRepresentationInline]
+
+    class Media:
+        js = ('/static/admin/js/hide_opening_period.js',)
 
 # == Tour == 
 class GpxImportForm(forms.Form):

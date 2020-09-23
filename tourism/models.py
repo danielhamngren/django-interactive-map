@@ -80,6 +80,8 @@ class PointOfInterest(models.Model):
         default=get_default_category
     )
 
+    is_always_open = models.BooleanField("est en permanence ouvert", default=False, null=False, blank=False)
+
     class Meta:
         ordering = ('name',)
         verbose_name = "point d'interêt"
@@ -139,7 +141,7 @@ class Event():
 def get_valid_through_default():
         return datetime.date(datetime.date.today().year, 12, 31)
 
-class OpeningHoursSchema(models.Model):
+class OpeningPeriod(models.Model):
     """ Opening period """
     poi = models.ForeignKey(PointOfInterest, on_delete=models.CASCADE)
     valid_from = models.DateField("valable à partir du", default=datetime.date.today)
@@ -168,7 +170,7 @@ class OpeningHours(models.Model):
         (7, "Dimanche"),
     ]
 
-    schema = models.ForeignKey(OpeningHoursSchema, on_delete=models.CASCADE)
+    schema = models.ForeignKey(OpeningPeriod, on_delete=models.CASCADE)
     weekday = models.PositiveSmallIntegerField("jour de la semaine", choices=WEEKDAYS)
     from_hour = models.TimeField("heure d'ouverture", null=True)
     to_hour = models.TimeField("heure de fermeture", null=True)
