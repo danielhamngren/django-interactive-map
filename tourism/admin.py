@@ -81,7 +81,8 @@ class CommuneAdmin(GeoArgonne):
 @admin.register(PointOfInterest)
 class PointOfInterestAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
     ## List
-    list_display = ('name_link', 'commune', 'owner', 'is_tour')
+    list_display = ('name_link', 'commune', 'owner', 'note_of_interest', 'is_tour')
+    # list_editable = ('note_of_interest', )
     list_display_links = None
 
     def name_link(self, poi):
@@ -133,6 +134,7 @@ class PointOfInterestAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
         'name',
         'description',
         'category',
+        'note_of_interest',
         'location',
         ('street_address', 'commune'),
         ('email', 'phone', 'website'),

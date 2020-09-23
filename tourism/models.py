@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.validators import MaxValueValidator
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 
@@ -51,6 +52,12 @@ class PointOfInterest(models.Model):
         settings.AUTH_USER_MODEL,
         null=True, blank=True,
         on_delete=models.SET_NULL
+    )
+    note_of_interest = models.PositiveSmallIntegerField(
+        default=0,
+        validators=[
+            MaxValueValidator(5),
+        ]
     )
 
     location = models.PointField("localication")
