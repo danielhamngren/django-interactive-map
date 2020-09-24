@@ -8,17 +8,11 @@ from django.contrib.gis.db import models
 from django.db.models import Case, Count, Exists, F, OuterRef, Value, When
 
 
-from .models import Category, Commune, OpeningPeriod, OpeningHours, PointOfInterest
+from .models import Category, Commune, OpeningPeriod, OpeningHours, PointOfInterest, Variable
 from . import utils
 
 import datetime
 import json
-
-#####
-DAYS_XN = 10
-DAYS_XP = 3
-NI_P = 3 / 5
-#####
 
 class IndexView(ListView):
     template_name = 'tourism/index.html'
@@ -81,6 +75,8 @@ def detail(request):
 
 @ajax_get_view
 def visible_poi(request):
+    DAYS_XN = Variable.objects.get_or_create(name="XN", defaults={'value':10})[0].value
+    DAYS_XP = Variable.objects.get_or_create(name="XP", defaults={'value':3})[0].value
     # Retrieve data
     categories = json.loads(request.GET.get("categories", None))
     name = json.loads(request.GET.get("name", None))
@@ -155,6 +151,7 @@ def visible_poi(request):
 
 @ajax_get_view
 def best_poi(request):
+    NI_P = Variable.objects.get_or_create(name="P", defaults={'value':3/5})[0].value
     POI_BY_PAGE = 10
     ids = json.loads(request.GET.get("ids", "[]"))
     whens = [When(pk=id, then=opening_score) for id, opening_score in ids.items()]

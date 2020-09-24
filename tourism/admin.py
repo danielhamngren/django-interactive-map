@@ -14,7 +14,22 @@ from django.utils.translation import ngettext
 import decimal
 import nested_admin
 import gpxpy
-from .models import Category, Commune, MainRepresentation, OpeningHours, OpeningPeriod, PointOfInterest, Tour
+from .models import Category, Commune, MainRepresentation, OpeningHours, OpeningPeriod, PointOfInterest, Tour, Variable
+
+
+@admin.register(Variable)
+class VariableAdin(admin.ModelAdmin):
+    list_display = ('name', 'value')
+    list_display_links = None
+    list_editable = ('value', )
+    # fields = ('value',)
+    readonly_fields = ('name',)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 class GeoArgonne(admin.OSMGeoAdmin):
     default_zoom = 10

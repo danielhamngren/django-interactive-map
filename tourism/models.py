@@ -7,6 +7,15 @@ import datetime
 from decimal import Decimal
 # from django.utils.translation import gettext_lazy as _
 
+
+class Variable(models.Model):
+    name = models.CharField(max_length=20, unique=True, editable=False)
+    value = models.FloatField()
+
+    def __str__(self):
+        return f"{self.name}={self.value}"
+
+
 class Category(models.Model):
     name = models.CharField(max_length=150)
     tag = models.CharField(max_length=100, unique=True)
