@@ -40,6 +40,27 @@ def get_default_category():
     return cat.id
 
 
+def icon_directory_path(instance, filename):
+    return f"icon/{instance.category.tag}/{filename}"
+
+class SubCategory(models.Model):
+    name = models.CharField(max_length=150)
+    icon = models.FileField(upload_to=icon_directory_path, verbose_name="icône")
+    order = models.PositiveIntegerField("ordre")
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.PROTECT,
+        default=get_default_category
+    )
+
+    class Meta:
+        verbose_name="sous-catégorie"
+        verbose_name_plural="sous-catégories"
+
+    def __str__(self):
+        return f"{self.name}"
+
+
 # == Commune ==
 class Commune(models.Model):
     name = models.CharField("nom", max_length=50)
@@ -88,8 +109,20 @@ class PointOfInterest(models.Model):
         on_delete=models.PROTECT,
         default=get_default_category
     )
+    subcategory = models.ForeignKey(
+        SubCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
     is_always_open = models.BooleanField("est en permanence ouvert", default=False, null=False, blank=False)
+
+    def save(self, *args, **kwargs):
+        ## Check that the selected subcategory belongs to the poi's category
+        if self.subcategory and self.subcategory.category.pk != self.category.pk:
+            self.subcategory = None
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ('name',)

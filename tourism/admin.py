@@ -14,7 +14,8 @@ from django.utils.translation import ngettext
 import decimal
 import nested_admin
 import gpxpy
-from .models import Category, Commune, MainRepresentation, OpeningHours, OpeningPeriod, PointOfInterest, Tour, Variable
+from .models import Category, Commune, MainRepresentation, OpeningHours, \
+    OpeningPeriod, PointOfInterest, SubCategory, Tour, Variable
 
 
 @admin.register(Variable)
@@ -36,17 +37,22 @@ class GeoArgonne(admin.OSMGeoAdmin):
     default_lon = 554517 # 49.129889
     default_lat = 6297230 #4.981058
 
-class OpeningHoursInline(nested_admin.NestedTabularInline):
-    model = OpeningHours
 
-class OpeningPeriodInline(nested_admin.NestedTabularInline):
-    model = OpeningPeriod
-    inlines = [OpeningHoursInline]
-    extra = 0
+@admin.register(Commune)
+class CommuneAdmin(GeoArgonne):
+    fields = [
+        'name',
+        'insee',
+        'postal_code',
+        'in_argonne_pnr',
+        'geom',
+    ]
 
-class MainRepresentationInline(nested_admin.NestedTabularInline):
-    model = MainRepresentation
 
+# == Category ==
+class SubCategoryInline(admin.TabularInline):
+    model = SubCategory
+    extra = 1
 
 class CategoryForm(forms.ModelForm):
     class Meta:
@@ -57,8 +63,9 @@ class CategoryForm(forms.ModelForm):
             'dark_color': forms.widgets.TextInput(attrs={'type': 'color'})
         }
 
+
 @admin.register(Category)
-class CategoryAdmin(GeoArgonne):
+class CategoryAdmin(admin.ModelAdmin):
     # fields = ['name', 'tag']
     form = CategoryForm
     # filter_horizontal = ('questions',)
@@ -82,16 +89,23 @@ class CategoryAdmin(GeoArgonne):
     ordering = ('order', )
     list_editable = ('order', )
     exclude = ('order',)
+    inlines = [SubCategoryInline]
 
-@admin.register(Commune)
-class CommuneAdmin(GeoArgonne):
-    fields = [
-        'name',
-        'insee',
-        'postal_code',
-        'in_argonne_pnr',
-        'geom',
-    ]
+
+# == PointOfInterest ==
+class OpeningHoursInline(nested_admin.NestedTabularInline):
+    model = OpeningHours
+
+
+class OpeningPeriodInline(nested_admin.NestedTabularInline):
+    model = OpeningPeriod
+    inlines = [OpeningHoursInline]
+    extra = 0
+
+
+class MainRepresentationInline(nested_admin.NestedTabularInline):
+    model = MainRepresentation
+
 
 @admin.register(PointOfInterest)
 class PointOfInterestAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
@@ -163,6 +177,7 @@ class PointOfInterestAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
                 'name',
                 'description',
                 'category',
+                'subcategory',
                 'note_of_interest',
                 'location',
                 ('street_address', 'commune'),
@@ -178,7 +193,10 @@ class PointOfInterestAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
     inlines = [OpeningPeriodInline, MainRepresentationInline]
 
     class Media:
-        js = ('/static/admin/js/hide_opening_period.js',)
+        js = (
+            '/static/admin/js/hide_opening_period.js',
+            '/static/admin/js/subcategory.js',
+        )
 
 # == Tour == 
 class GpxImportForm(forms.Form):
@@ -190,6 +208,7 @@ class GpxImportForm(forms.Form):
             seront mises à jour selon les données fournies par le fichier GPX.",
         initial=True
     )
+
 
 def form_handle_gpx_file(fn):
     def wrapper(self, request, *args, **kwargs):

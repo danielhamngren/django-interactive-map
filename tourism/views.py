@@ -8,7 +8,7 @@ from django.contrib.gis.db import models
 from django.db.models import Case, Count, Exists, F, OuterRef, Value, When
 
 
-from .models import Category, Commune, OpeningPeriod, OpeningHours, PointOfInterest, Variable
+from .models import Category, Commune, OpeningPeriod, OpeningHours, PointOfInterest, SubCategory, Variable
 from . import utils
 
 import datetime
@@ -40,6 +40,16 @@ def ajax_get_view(view_function):
         else:
             return HttpResponseNotAllowed(('GET',))
     return wrapper
+
+@ajax_get_view
+def admin_get_subcategory(request):
+    id = request.GET.get('id', '')
+    subcategories = SubCategory.objects.filter(
+        category_id=int(id)
+        ).values('id', 'name')
+    return JsonResponse({"subcategories": list(subcategories)}, status=200)
+    # return HttpResponse(json.dumps(result), content_type="application/json")
+
 
 @ajax_get_view
 def detail(request):
