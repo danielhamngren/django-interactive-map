@@ -62,7 +62,7 @@ def detail(request):
             request.GET.get("date-to", "9999-12-31"), '%Y-%m-%d'
         ).date()
         opening_schema = OpeningPeriod.objects.filter(
-            poi=poi,
+            place=poi,
             valid_from__lte=date_end,
             valid_through__gte=date_start,
             # openingperiod__openinghours__weekday__in = utils.get_isoweekdays_btw_dates(date_start, date_end),
@@ -74,7 +74,7 @@ def detail(request):
 
     else: # get current opening_schema
         opening_schema = OpeningPeriod.objects.filter(
-            poi=poi,
+            place=poi,
             valid_from__lte=datetime.date.today(),
             valid_through__gte=datetime.date.today()).first()
         content = {
@@ -118,7 +118,7 @@ def visible_poi(request):
     date_end_later = date_end + datetime.timedelta(days=DAYS_XN)  # XN
     date_end_near = date_end + datetime.timedelta(days=DAYS_XP)  # XP
     openingperiod_later = OpeningPeriod.objects.filter(
-        poi=OuterRef('pk'),
+        place=OuterRef('pk'),
         valid_from__lte=date_end_later,
         valid_through__gte=date_start,
         openinghours__weekday__in=utils.get_isoweekdays_btw_dates(date_start, date_end_later),

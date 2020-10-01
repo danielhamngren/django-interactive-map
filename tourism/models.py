@@ -76,8 +76,25 @@ class Commune(models.Model):
         return f"{self.name}"
 
 # == POIs ==
-class PointOfInterest(models.Model):
+class Place(models.Model):
     name = models.CharField("nom", max_length=100)
+
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.PROTECT,
+        default=get_default_category
+    )
+    subcategory = models.ForeignKey(
+        SubCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    is_always_open = models.BooleanField("est en permanence ouvert", default=False, null=False, blank=False)
+
+
+class PointOfInterest(Place):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True, blank=True,
@@ -104,20 +121,6 @@ class PointOfInterest(models.Model):
     website = models.URLField(max_length=200, blank=True)
     description = models.TextField(blank=True)
 
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.PROTECT,
-        default=get_default_category
-    )
-    subcategory = models.ForeignKey(
-        SubCategory,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
-
-    is_always_open = models.BooleanField("est en permanence ouvert", default=False, null=False, blank=False)
-
     def save(self, *args, **kwargs):
         ## Check that the selected subcategory belongs to the poi's category
         if self.subcategory and self.subcategory.category.pk != self.category.pk:
@@ -131,9 +134,6 @@ class PointOfInterest(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.commune.name})"
-
-class Place():
-    pass
 
 class Tour(PointOfInterest):
     path = models.MultiLineStringField("parcours", null=True)
@@ -179,13 +179,17 @@ class Event():
     pass
 
 
+class ZoneOfInterest(models.Model):
+    zone = models.MultiPointField("zone")
+
+
 # == Management of opening hours ==
 def get_valid_through_default():
         return datetime.date(datetime.date.today().year, 12, 31)
 
 class OpeningPeriod(models.Model):
     """ Opening period """
-    poi = models.ForeignKey(PointOfInterest, on_delete=models.CASCADE)
+    place = models.ForeignKey(Place, on_delete=models.CASCADE)
     valid_from = models.DateField("valable à partir du", default=datetime.date.today)
     valid_through= models.DateField("valable jusqu'au", blank=True, default=get_valid_through_default)
 
@@ -196,7 +200,7 @@ class OpeningPeriod(models.Model):
         ordering = ['valid_from', 'valid_through']
 
     def __str__(self):
-        return f"{self.poi.name} ({self.valid_from} - {self.valid_through}"
+        return f"{self.place.name} ({self.valid_from} - {self.valid_through}"
 
 
 
@@ -223,7 +227,7 @@ class OpeningHours(models.Model):
         ordering = ['weekday', 'from_hour']
 
     def __str__(self):
-        return f"{self.schema.poi.name} {self.weekday} ({self.from_hour} - {self.to_hour})"
+        return f"{self.schema.place.name} {self.weekday} ({self.from_hour} - {self.to_hour})"
 
 # == Media ==
 class Media(models.Model):
