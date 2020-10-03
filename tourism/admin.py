@@ -15,7 +15,7 @@ import decimal
 import nested_admin
 import gpxpy
 from .models import Category, Commune, MainRepresentation, OpeningHours, \
-    OpeningPeriod, PointOfInterest, SubCategory, Tour, Variable
+    OpeningPeriod, PointOfInterest, SubCategory, Tour, Variable, ZoneOfInterest
 
 
 @admin.register(Variable)
@@ -309,3 +309,17 @@ class TourAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
         
         self.message_user(request, "Votre fichier GPX a été importé avec succès")
         return redirect("..")
+
+
+@admin.register(ZoneOfInterest)
+class ZoneOfInterestAdmin(GeoArgonne, nested_admin.NestedModelAdmin):
+    list_display = ('name',)
+    exclude = ('dt_id', 'dt_categories')
+    fields = ("name", "description", "category", "subcategory", "zone", "is_always_open")
+    inlines = [OpeningPeriodInline]
+
+    class Media:
+        js = (
+        '/static/admin/js/hide_opening_period.js',
+        '/static/admin/js/subcategory.js',
+    )

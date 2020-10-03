@@ -19,7 +19,7 @@ class Variable(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=150)
     tag = models.CharField(max_length=100, unique=True)
-    order = models.IntegerField("ordre")
+    order = models.IntegerField("ordre", default=100)
 
     light_color = models.CharField(max_length=7, default="#d54363")
     dark_color = models.CharField(max_length=7, default="#a1334b")
@@ -78,6 +78,8 @@ class Commune(models.Model):
 # == POIs ==
 class Place(models.Model):
     name = models.CharField("nom", max_length=100)
+    description = models.TextField(blank=True)
+
 
     category = models.ForeignKey(
         Category,
@@ -92,6 +94,12 @@ class Place(models.Model):
     )
 
     is_always_open = models.BooleanField("est en permanence ouvert", default=False, null=False, blank=False)
+
+    def save(self, *args, **kwargs):
+        ## Check that the selected subcategory belongs to the poi's category
+        if self.subcategory and self.subcategory.category.pk != self.category.pk:
+            self.subcategory = None
+        super().save(*args, **kwargs)
 
 
 class PointOfInterest(Place):
@@ -119,13 +127,6 @@ class PointOfInterest(Place):
     email = models.EmailField(max_length=50, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     website = models.URLField(max_length=200, blank=True)
-    description = models.TextField(blank=True)
-
-    def save(self, *args, **kwargs):
-        ## Check that the selected subcategory belongs to the poi's category
-        if self.subcategory and self.subcategory.category.pk != self.category.pk:
-            self.subcategory = None
-        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ('name',)
@@ -179,8 +180,13 @@ class Event():
     pass
 
 
-class ZoneOfInterest(models.Model):
-    zone = models.MultiPointField("zone")
+class ZoneOfInterest(Place):
+    zone = models.MultiPolygonField("zone")
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = "zone d'interêt"
+        verbose_name_plural = "zones d'interêt"
 
 
 # == Management of opening hours ==
